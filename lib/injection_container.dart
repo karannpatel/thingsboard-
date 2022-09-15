@@ -1,15 +1,18 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:thingsboard_pe_client/thingsboard_client.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
-
+  final tbClient = ThingsboardClient('https://dashboard.livair.io:443',onError: (e){
+  });
   sl..registerLazySingleton(() => Dio()
   ..interceptors.add(Logging()));
 }
 class Logging extends Interceptor {
+
   @override
   void onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
@@ -33,14 +36,14 @@ class Logging extends Interceptor {
   @override
   void onError(DioError err, ErrorInterceptorHandler handler) async {
     print(
-      'ERROR[${err.response?.statusCode}] => PATH: ${err.requestOptions.path}',
+      'ERROR[${err.response}] => PATH: ${err.requestOptions.path}',
     );
 
-    if(err.response!.statusCode==401){
-      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-      String? refreshToken = await sharedPreferences.getString('refreshToken');
-      await sharedPreferences.setString('token',refreshToken!);
-    }
+    // if(err.response!.statusCode==401){
+    //   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    //   String? refreshToken = await sharedPreferences.getString('refreshToken');
+    //   await sharedPreferences.setString('token',refreshToken!);
+    // }
     return super.onError(err, handler);
   }
 }

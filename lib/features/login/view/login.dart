@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:thingsboard/constant.dart';
+import 'package:thingsboard/features/dashboard/view/dashboard.dart';
 import 'package:thingsboard/features/login/controller/loginController.dart';
 import 'package:thingsboard/features/login/view/forgetPassword.dart';
+
+import 'package:thingsboard_pe_client/thingsboard_client.dart';
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -15,7 +19,8 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController passwordController = TextEditingController();
   LoginController loginController = Get.put(LoginController());
   bool visiblePassword = false;
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  // final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  ConstantController constantController = Get.put(ConstantController());
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
@@ -51,69 +56,66 @@ class _LoginPageState extends State<LoginPage> {
                   ],
                 ),
               ),
-              Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      child: TextFormField(
-                        controller: nameController,
-                        validator: (value){
-                          if(value==null||value.isEmpty){
-                            return "Enter email";
-                          }
-                          return null;
-                        },
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelStyle: TextStyle(color: Colors.white),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white),
-                          ),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white),
-                          ),
-                          labelText: 'Username(email)*',
+              Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    child: TextFormField(
+                      controller: nameController,
+                      validator: (value){
+                        if(value==null||value.isEmpty){
+                          return "Enter email";
+                        }
+                        return null;
+                      },
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelStyle: TextStyle(color: Colors.white),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white),
                         ),
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white),
+                        ),
+                        labelText: 'Username(email)*',
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-                      child: TextFormField(
-                        obscureText: visiblePassword,
-                        controller: passwordController,
-                        validator: (value){
-                          if(value==null||value.isEmpty){
-                            return "Enter Password";
-                          }
-                          return null;
-                        },
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          suffixIcon: InkWell(
-                            child: visiblePassword?const Icon(Icons.visibility,color: Colors.white,):const Icon(Icons.visibility_off,color: Colors.white),
-                            onTap: (){
-                              setState((){
-                                visiblePassword=!visiblePassword;
-                              });
-                            },
-                          ),
-                          labelStyle: const TextStyle(color: Colors.white),
-                          border: const OutlineInputBorder(),
-                          focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white),
-                          ),
-                          enabledBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white),
-                          ),
-                          labelText: 'Password',
+                  ),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                    child: TextFormField(
+                      obscureText: visiblePassword,
+                      controller: passwordController,
+                      validator: (value){
+                        if(value==null||value.isEmpty){
+                          return "Enter Password";
+                        }
+                        return null;
+                      },
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        suffixIcon: InkWell(
+                          child: visiblePassword?const Icon(Icons.visibility,color: Colors.white,):const Icon(Icons.visibility_off,color: Colors.white),
+                          onTap: (){
+                            setState((){
+                              visiblePassword=!visiblePassword;
+                            });
+                          },
                         ),
+                        labelStyle: const TextStyle(color: Colors.white),
+                        border: const OutlineInputBorder(),
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white),
+                        ),
+                        enabledBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white),
+                        ),
+                        labelText: 'Password',
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               Align(
                 alignment: Alignment.bottomRight,
@@ -140,13 +142,22 @@ class _LoginPageState extends State<LoginPage> {
                       primary: const Color(0xffff5722), // This is what you need!
                     ),
                     child: loginController.isLoading.value?const CircularProgressIndicator():const Text('Login'),
-                    onPressed: () {
-                      if(_formKey.currentState!.validate()){
-                        nameController.clear();
-                        passwordController.clear();
-                        loginController.login(nameController.text, passwordController.text);
+                    onPressed: ()async {
+                      try{
+                        var res =await constantController.tbClient.login(LoginRequest(nameController.text, passwordController.text));
+                        print(constantController.tbClient.getAuthUser());
+                        if(constantController.tbClient.isAuthenticated())
+
+                          constantController.tbClient.setUserFromJwtToken(constantController.tbClient.getJwtToken(), constantController.tbClient.getRefreshToken(), true);
+                          Get.to(DashboardScreen());
                       }
-                    },
+                      catch(e){
+                        print(e);
+                      }
+                      // loginController.login(nameController.text, passwordController.text);
+                      //   nameController.clear();
+                      //   passwordController.clear();
+                      }
                   ))),
             ]),
           ),

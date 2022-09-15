@@ -21,6 +21,7 @@ dependencies:
   get_it: ^7.2.0
   web_socket_channel: ^2.2.0
   responsive_framework: ^0.2.0
+  thingsboard_pe_client: ^1.0.4
 dev_dependencies:
   flutter_test:
     sdk: flutter

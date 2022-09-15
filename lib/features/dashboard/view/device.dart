@@ -31,11 +31,7 @@ class _DeviceState extends State<Device> {
     super.initState();
   }
 
-  @override
-  void dispose() {
-    dashboardController.deviceList.clear();
-    super.dispose();
-  }
+
 
   void test() async {
     channel.sink.add('''{
@@ -178,44 +174,44 @@ class _DeviceState extends State<Device> {
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
         ),
-        Flexible(
-          child: StreamBuilder(
-            stream: channel.stream,
-            builder: (context, snapshot) {
-              //return Container();
-              if (snapshot.hasData ||
-                  snapshot.connectionState == ConnectionState.active) {
-                var res = snapshot.data;
-                if (res != null) {
-                  var a = jsonDecode(snapshot.data.toString());
-                  var data = a;
-                  print(data);
-                  dashboardController.deviceList.add(data);
-                  dashboardController.deviceList.refresh();
-                  print('--=-=-=-=-=-=-=-=-=-');
-                  return Obx(() => ListView.builder(
-                    shrinkWrap: true,
-                        itemBuilder: (context, index) => InkWell(
-                          onTap: (){
-                            Get.to(DeviceDetail());
-                          },
-                          child: Container(
-                            margin: EdgeInsets.all(20),
-                            child: Text(
-                                dashboardController.deviceList[index]['data']
-                                        ['data'][0]['latest']['ENTITY_FIELD']
-                                        ['name']['value']
-                                    .toString()),
-                          ),
-                        ),
-                        itemCount: dashboardController.deviceList.length,
-                      ));
-                }
-              }
-              return Text("Np Data Found");
-            },
-          ),
-        )
+        // Flexible(
+        //   child: StreamBuilder(
+        //     stream: channel.stream,
+        //     builder: (context, snapshot) {
+        //       //return Container();
+        //       if (snapshot.hasData ||
+        //           snapshot.connectionState == ConnectionState.active) {
+        //         var res = snapshot.data;
+        //         if (res != null) {
+        //           var a = jsonDecode(snapshot.data.toString());
+        //           var data = a;
+        //           print(data);
+        //           dashboardController.deviceList.add(data);
+        //           dashboardController.deviceList.refresh();
+        //           print('--=-=-=-=-=-=-=-=-=-');
+        //           return Obx(() => ListView.builder(
+        //             shrinkWrap: true,
+        //                 itemBuilder: (context, index) => InkWell(
+        //                   onTap: (){
+        //                     Get.to(DeviceDetail());
+        //                   },
+        //                   child: Container(
+        //                     margin: EdgeInsets.all(20),
+        //                     child: Text(
+        //                         dashboardController.deviceList[index]['data']
+        //                                 ['data'][0]['latest']['ENTITY_FIELD']
+        //                                 ['name']['value']
+        //                             .toString()),
+        //                   ),
+        //                 ),
+        //                 itemCount: dashboardController.deviceList.length,
+        //               ));
+        //         }
+        //       }
+        //       return Text("Np Data Found");
+        //     },
+        //   ),
+        // )
       ]),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:thingsboard/features/login/controller/loginController.dart';
+import 'package:thingsboard_pe_client/thingsboard_client.dart';
 class ForgetPasswordPage extends StatefulWidget {
   const ForgetPasswordPage({Key? key}) : super(key: key);
 
@@ -14,6 +15,9 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
   TextEditingController nameController = TextEditingController();
   LoginController loginController = Get.put(LoginController());
   bool visiblePassword = false;
+  var tbClient = ThingsboardClient('https://dashboard.livair.io:443',onError: (e){
+    Get.snackbar("Error", e.message!,colorText: Colors.white,backgroundColor: Colors.red);
+  });
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
@@ -76,9 +80,9 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
                                     child: loginController.isLoading.value?CircularProgressIndicator():const Text('Request Password Reset'),
                                     onPressed: () {
                                       nameController.clear();
-
-                                      loginController.resetPassword(nameController.text,);
-                                    },
+                                     var res =   tbClient.sendResetPasswordLink(nameController.text);
+                                      Get.snackbar("Success", "Reset link is send to your email",colorText: Colors.white,backgroundColor: Colors.green);
+                                     },
                                   )),),
                               Container(
                                   height: 50,

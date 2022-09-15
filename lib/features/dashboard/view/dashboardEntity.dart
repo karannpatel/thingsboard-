@@ -4,33 +4,35 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thingsboard/features/dashboard/view/device.dart';
+import 'package:thingsboard_pe_client/thingsboard_client.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import '../../../constant.dart';
 import '../controller/dashboardController.dart';
 
-class DashboardEntity extends StatefulWidget {
-  DashboardEntity({Key? key, required this.id}) : super(key: key);
-  String id;
+class DashboardEntityScreen extends StatefulWidget {
+  DashboardEntityScreen({Key? key, required this.dashboardInfo}) : super(key: key);
+  DashboardInfo dashboardInfo;
 
   @override
-  State<DashboardEntity> createState() => _DashboardEntityState();
+  State<DashboardEntityScreen> createState() => _DashboardEntityScreenState();
 }
 
-class _DashboardEntityState extends State<DashboardEntity> {
+class _DashboardEntityScreenState extends State<DashboardEntityScreen> {
   DashboardController dashboardController = Get.put(DashboardController());
-
-  @override
-  void initState() {
-    dashboardController.getEntityGroup(widget.id, '10', '0');
-    // TODO: implement initState
-    super.initState();
+  ConstantController constantController = Get.put(ConstantController());
+  void getData()async{
+    DashboardInfo? res = await constantController.tbClient.getDashboardService().getDashboardInfo(widget.dashboardInfo!.id!.id!);
+   PageData test = await constantController.tbClient.getDeviceProfileService().getDeviceProfileInfos(PageLink(100));
+   dashboardController.deviceList.value = test.data;
+    print(test);
   }
 
   @override
-  void dispose() {
-    dashboardController.entityGroupList.clear();
-    // TODO: implement dispose
-    super.dispose();
+  void initState() {
+    getData();
+    // TODO: implement initState
+    super.initState();
   }
 
   @override
@@ -51,16 +53,18 @@ class _DashboardEntityState extends State<DashboardEntity> {
                     shrinkWrap: true,
                     itemBuilder: (context, index) => InkWell(
                       onTap: () async{
-                        SharedPreferences sharedPreference = await SharedPreferences.getInstance();
-                        Get.to(Device(token: sharedPreference.getString('token')!));
+                        var res = await constantController.tbClient.getDeviceService().getTenantDevice("Radon Devices");
+                     print(res);
+                        // SharedPreferences sharedPreference = await SharedPreferences.getInstance();
+                        // Get.to(Device(token: sharedPreference.getString('token')!));
                       },
                       child: Container(
                         margin: EdgeInsets.all(20),
                         child: Text(
-                            dashboardController.entityGroupList[index].name),
+                            dashboardController.deviceList[index].toString()),
                       ),
                     ),
-                    itemCount: dashboardController.entityGroupList.length,
+                    itemCount: dashboardController.deviceList.length,
                   )),
             ]),
           ),
