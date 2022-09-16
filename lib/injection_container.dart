@@ -6,11 +6,12 @@ import 'package:thingsboard_pe_client/thingsboard_client.dart';
 final sl = GetIt.instance;
 
 Future<void> init() async {
-  final tbClient = ThingsboardClient('https://dashboard.livair.io:443',onError: (e){
-  });
   sl..registerLazySingleton(() => Dio()
   ..interceptors.add(Logging()));
 }
+
+
+
 class Logging extends Interceptor {
 
   @override
