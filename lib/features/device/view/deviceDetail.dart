@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -18,12 +19,24 @@ class _DeviceDetailState extends State<DeviceDetail> {
   DeviceController deviceController = Get.put(DeviceController());
   ConstantController constantController = Get.put(ConstantController());
   List<PageData> data =[];
+  List temp =[];
+  List hum =[];
+  List<FlSpot> listSlot =[
+    FlSpot(1, 1),
+    FlSpot(3, 1.5),
+    FlSpot(5, 1.4),
+    FlSpot(7, 3.4),
+    FlSpot(10, 2),
+    FlSpot(12, 2.2),
+    FlSpot(13, 1.8),
+  ];
+  int i=13;
   WidgetType? widgetType=null;
   var subscription;
   void getData()async{
 
-   print('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=');
-   var telemetryService = constantController.tbClient.getTelemetryService();
+    print('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=');
+    var telemetryService = constantController.tbClient.getTelemetryService();
     subscription = TelemetrySubscriber(telemetryService,[
 
       EntityDataCmd(
@@ -63,12 +76,141 @@ class _DeviceDetailState extends State<DeviceDetail> {
 
     subscription.subscribe();
   }
+  void getGraphData()async{
+    // Prepare list of queried device fields
+    var deviceFields = <EntityKey>[
+      EntityKey(type: EntityKeyType.ENTITY_FIELD, key: 'name'),
+      EntityKey(type: EntityKeyType.ENTITY_FIELD, key: 'type'),
+      EntityKey(type: EntityKeyType.ENTITY_FIELD, key: 'createdTime')
+    ];
 
+    // Prepare list of queried device timeseries
+    var deviceTelemetry = <EntityKey>[
+      EntityKey(type: EntityKeyType.TIME_SERIES, key: 'temperature'),
+      EntityKey(type: EntityKeyType.TIME_SERIES, key: 'humidity')
+    ];
+
+    // Create entity query with provided entity filter, queried fields and page link
+    var devicesQuery = EntityDataQuery(
+        entityFilter: SingleEntityFilter(singleEntity:DeviceId("e2dd9ae0-342d-11ed-a05f-bda054e13867")),
+        entityFields: deviceFields,
+        latestValues: deviceTelemetry,
+        pageLink: EntityDataPageLink(
+            pageSize: 10,
+            sortOrder: EntityDataSortOrder(
+                key: EntityKey(
+                    type: EntityKeyType.ENTITY_FIELD, key: 'createdTime'),
+                direction: EntityDataSortOrderDirection.DESC)));
+
+    // Create timeseries subscription command to get data for 'temperature' and 'humidity' keys for last hour with realtime updates
+    var currentTime = DateTime.now().millisecondsSinceEpoch;
+    var timeWindow = Duration(hours: 1).inMilliseconds;
+
+    var tsCmd = TimeSeriesCmd(
+        agg: Aggregation.AVG,
+        limit: 21,
+        interval:30000,
+        keys: ['temp', 'hum'],
+        startTs: 1663674780000,
+        timeWindow: 630000);
+
+    // Create subscription command with entities query and timeseries subscription
+    var cmd = EntityDataCmd(query: devicesQuery, tsCmd: tsCmd);
+
+    // Create subscription with provided subscription command
+    var telemetryService = constantController.tbClient.getTelemetryService();
+    var subscription = TelemetrySubscriber(telemetryService, [cmd]);
+
+    // Create listener to get data updates from WebSocket
+    subscription.entityDataStream.listen((entityDataUpdate) {
+      DataUpdate dataUpdate = entityDataUpdate;
+      setState((){
+        if(dataUpdate.update!=null) {
+          EntityData entityData = dataUpdate.update![0];
+
+          print(entityData);
+          if(entityData.timeseries['hum'] != null){
+          hum.add((entityData.timeseries['hum'] as List<TsValue>)[0].value);
+          listSlot.add(FlSpot(i+1, double.parse(hum.last.toString())));
+          i=i+1;
+          }
+          if(entityData.timeseries['temp'] != null)
+          temp.add((entityData.timeseries['temp'] as List<TsValue>)[0].value);
+          }
+        
+      });
+      print('Received entity data update: $entityDataUpdate');
+      print('/*/*/*/*/*/*/*/*/*/*/*/*/');
+    });
+
+    // Perform subscribe (send subscription command via WebSocket API and listen for responses)
+    subscription.subscribe();
+  }
   @override
   void initState() {
     getData();
+    getGraphData();
     // TODO: implement initState
     super.initState();
+  }
+
+
+  Widget bottomTitleWidgets(double value, TitleMeta meta) {
+    const style = TextStyle(
+      color: Color(0xff72719b),
+      fontWeight: FontWeight.bold,
+      fontSize: 16,
+    );
+    Widget text;
+    switch (value.toInt()) {
+      case 2:
+        text = const Text('SEPT', style: style);
+        break;
+      case 7:
+        text = const Text('OCT', style: style);
+        break;
+      case 12:
+        text = const Text('DEC', style: style);
+        break;
+      default:
+        text = const Text('');
+        break;
+    }
+
+    return SideTitleWidget(
+      axisSide: meta.axisSide,
+      space: 10,
+      child: text,
+    );
+  }
+  Widget leftTitleWidgets(double value, TitleMeta meta) {
+    const style = TextStyle(
+      color: Color(0xff75729e),
+      fontWeight: FontWeight.bold,
+      fontSize: 14,
+    );
+    String text;
+    switch (value.toInt()) {
+      case 10:
+        text = '1m';
+        break;
+      case 20:
+        text = '2m';
+        break;
+      case 30:
+        text = '3m';
+        break;
+      case 40:
+        text = '5m';
+        break;
+      case 50:
+        text = '6m';
+        break;
+      default:
+        return Container();
+    }
+
+    return Text(text, style: style, textAlign: TextAlign.center);
   }
   @override
   Widget build(BuildContext context) {
@@ -91,7 +233,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                       style: ElevatedButton.styleFrom(primary: Colors.white),
                       onPressed: () {},
                       icon: const Icon(
-                          // <-- Icon
+                        // <-- Icon
                           Icons.edit,
                           size: 24.0,
                           color: Colors.black),
@@ -107,7 +249,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                       style: ElevatedButton.styleFrom(primary: Colors.white),
                       onPressed: () {},
                       icon: const Icon(
-                          // <-- Icon
+                        // <-- Icon
                           Icons.directions,
                           size: 24.0,
                           color: Colors.black),
@@ -123,7 +265,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                       style: ElevatedButton.styleFrom(primary: Colors.white),
                       onPressed: () {},
                       icon: const Icon(
-                          // <-- Icon
+                        // <-- Icon
                           Icons.delete,
                           size: 24.0,
                           color: Colors.black),
@@ -144,7 +286,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                        children: const [
                           Text(
                             "MAC address",
                             overflow: TextOverflow.clip,
@@ -157,7 +299,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                        children: const [
                           Text(
                             "Sensor serial number",
                             overflow: TextOverflow.clip,
@@ -170,7 +312,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                        children: const [
                           Text(
                             "Last synced",
                             overflow: TextOverflow.clip,
@@ -189,7 +331,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                        children: const [
                           Text(
                             "MAC address",
                             overflow: TextOverflow.clip,
@@ -202,7 +344,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                        children: const [
                           Text(
                             "Sensor serial number",
                             overflow: TextOverflow.clip,
@@ -215,7 +357,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                        children: const [
                           Text(
                             "Last synced",
                             overflow: TextOverflow.clip,
@@ -234,7 +376,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                        children: const [
                           Text(
                             "MAC address",
                             overflow: TextOverflow.clip,
@@ -247,7 +389,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                        children: const [
                           Text(
                             "Sensor serial number",
                             overflow: TextOverflow.clip,
@@ -260,7 +402,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                        children: const [
                           Text(
                             "Last synced",
                             overflow: TextOverflow.clip,
@@ -279,7 +421,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                        children: const [
                           Text(
                             "MAC address",
                             overflow: TextOverflow.clip,
@@ -292,7 +434,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                        children: const [
                           Text(
                             "Sensor serial number",
                             overflow: TextOverflow.clip,
@@ -305,7 +447,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                        children: const [
                           Text(
                             "Last synced",
                             overflow: TextOverflow.clip,
@@ -322,7 +464,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
 
               ],
             ),
-            Center(
+            data.isNotEmpty?Center(
               child: Container(
                 child: Column(
                   children: [
@@ -337,7 +479,74 @@ class _DeviceDetailState extends State<DeviceDetail> {
                   ],
                 ),
               ),
-            )
+            ):SizedBox(),
+
+            Text("Temp   "+(temp.toString() )),//:Container(),//as >).latest[EntityKeyType.ATTRIBUTE].toString())
+            Text("Humidity   "+(hum.toString() )),//:Container(),//as >).latest[EntityKeyType.ATTRIBUTE].toString())
+
+
+       SizedBox(
+         width: 700,
+         height: 500,
+         child:  LineChart(LineChartData(
+           lineTouchData: LineTouchData(
+             handleBuiltInTouches: true,
+             touchTooltipData: LineTouchTooltipData(
+               tooltipBgColor: Colors.blueGrey.withOpacity(0.8),
+             ),
+           ),
+           gridData: FlGridData(show: false),
+           titlesData: FlTitlesData(
+             bottomTitles: AxisTitles(
+               sideTitles: SideTitles(
+                 showTitles: true,
+                 reservedSize: 32,
+                 interval: 1,
+               ),
+             ),
+             rightTitles: AxisTitles(
+               sideTitles: SideTitles(showTitles: false),
+             ),
+             topTitles: AxisTitles(
+               sideTitles: SideTitles(showTitles: false),
+             ),
+             leftTitles: AxisTitles(
+               sideTitles: SideTitles(
+                 showTitles: true,
+                 interval: 20,
+                 reservedSize: 120,
+               ),
+             ),
+           ),
+           borderData: FlBorderData(
+             show: true,
+             border: const Border(
+               bottom: BorderSide(color: Color(0xff4e4965), width: 4),
+               left: BorderSide(color: Colors.transparent),
+               right: BorderSide(color: Colors.transparent),
+               top: BorderSide(color: Colors.transparent),
+             ),
+           ),
+           lineBarsData: [
+             LineChartBarData(
+               isCurved: true,
+               color: const Color(0xff4af699),
+               barWidth: 8,
+               isStrokeCapRound: true,
+               dotData: FlDotData(show: false),
+               belowBarData: BarAreaData(show: false),
+               spots: listSlot
+             ),
+           ],
+           minX: 0,
+           maxX: 14,
+           maxY: 140,
+           minY: 0,
+         ),
+         swapAnimationDuration: const Duration(milliseconds: 250),
+       ),
+       )
+
           ],
         ),
       ),

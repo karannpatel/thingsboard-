@@ -76,7 +76,12 @@ class _DashboardEntityScreenState extends State<DashboardEntityScreen> {
     // TODO: implement initState
     super.initState();
   }
-
+  @override
+  void dispose() {
+    subscription.unsubscribe();
+    // TODO: implement dispose
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

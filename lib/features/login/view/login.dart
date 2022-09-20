@@ -144,7 +144,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: loginController.isLoading.value?const CircularProgressIndicator():const Text('Login'),
                     onPressed: ()async {
                       try{
-                        var res =await constantController.tbClient.login(LoginRequest(nameController.text, passwordController.text));
+                        var res =await constantController.tbClient.login(LoginRequest("babylon99_de@gmx.de", "Iot123!!"));
                         print(constantController.tbClient.getAuthUser());
                         if(constantController.tbClient.isAuthenticated())
 
