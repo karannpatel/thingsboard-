@@ -22,7 +22,7 @@ dependencies:
   web_socket_channel: ^2.2.0
   responsive_framework: ^0.2.0
   thingsboard_pe_client: ^1.0.4
-  fl_chart: ^0.55.1
+  syncfusion_flutter_charts: ^20.2.50
   universal_html: ^2.0.8
 dev_dependencies:
   flutter_test:
