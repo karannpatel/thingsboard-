@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      scrollBehavior: MyCustomScrollBehavior(),
       builder: (context, child) => ResponsiveWrapper.builder(
           child,
           minWidth: 480,
@@ -48,21 +50,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
-class ScreenTwo extends StatefulWidget {
-  const ScreenTwo({Key? key}) : super(key: key);
-
+class MyCustomScrollBehavior extends MaterialScrollBehavior {
+  // Override behavior methods and getters like dragDevices
   @override
-  State<ScreenTwo> createState() => _ScreenTwoState();
-}
-
-class _ScreenTwoState extends State<ScreenTwo> {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 500,
-      width: 900,
-      color: Colors.green,
-    );
-  }
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+  };
 }

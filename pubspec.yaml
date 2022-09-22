@@ -24,6 +24,7 @@ dependencies:
   thingsboard_pe_client: ^1.0.4
   syncfusion_flutter_charts: ^20.2.50
   universal_html: ^2.0.8
+  intl: ^0.17.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
