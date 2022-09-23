@@ -1,4 +1,5 @@
 // import 'package:fl_chart/fl_chart.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,6 +10,7 @@ import 'package:thingsboard/features/device/controller/device.dart';
 import 'package:thingsboard_pe_client/thingsboard_client.dart';
 
 import '../../../constant.dart';
+import '../../../injection_container.dart';
 
 class DeviceDetail extends StatefulWidget {
   const DeviceDetail({Key? key}) : super(key: key);
@@ -18,6 +20,7 @@ class DeviceDetail extends StatefulWidget {
 }
 
 class _DeviceDetailState extends State<DeviceDetail> {
+  late TrackballBehavior _trackballBehavior;
   DeviceController deviceController = Get.put(DeviceController());
   ConstantController constantController = Get.put(ConstantController());
   List<PageData> data = [];
@@ -65,52 +68,69 @@ class _DeviceDetailState extends State<DeviceDetail> {
     ]);
     subscription.entityDataStream.listen((entityDataUpdate) {
       DataUpdate dataUpdate = entityDataUpdate;
-      setState(() {
-        data.add(dataUpdate.data!);
-        humData.add(ChartSampleData(
-            x: DateTime.now(),
-            yValue: double.parse(((data[0].data[0] as EntityData)
-                    .latest[EntityKeyType.TIME_SERIES]!['hum'] as TsValue)
-                .value
-                .toString())));
-        tempData.add(ChartSampleData(
-            x: DateTime.now(),
-            yValue: double.parse(((data[0].data[0] as EntityData)
-                    .latest[EntityKeyType.TIME_SERIES]!['temp'] as TsValue)
-                .value
-                .toString())));
-        radonData.add(ChartSampleData(
-            x: DateTime.now(),
-            yValue: double.parse(((data[0].data[0] as EntityData)
-                    .latest[EntityKeyType.TIME_SERIES]!['radon'] as TsValue)
-                .value
-                .toString())));
-        vocData.add(ChartSampleData(
-            x: DateTime.now(),
-            yValue: double.parse(((data[0].data[0] as EntityData)
-                    .latest[EntityKeyType.TIME_SERIES]!['voc'] as TsValue)
-                .value
-                .toString())));
-        co2Data.add(ChartSampleData(
-            x: DateTime.now(),
-            yValue: double.parse(((data[0].data[0] as EntityData)
-                    .latest[EntityKeyType.TIME_SERIES]!['co2'] as TsValue)
-                .value
-                .toString())));
-        pmData.add(ChartSampleData(
-            x: DateTime.now(),
-            yValue: double.parse(((data[0].data[0] as EntityData)
-                    .latest[EntityKeyType.TIME_SERIES]!['pm'] as TsValue)
-                .value
-                .toString())));
-        noxData.add(ChartSampleData(
-            x: DateTime.now(),
-            yValue: double.parse(((data[0].data[0] as EntityData)
-                    .latest[EntityKeyType.TIME_SERIES]!['nox'] as TsValue)
-                .value
-                .toString())));
-      });
-      print(data);
+      // setState(() {
+      //   data.add(dataUpdate.data!);
+      //   humData.add(ChartSampleData(
+      //       x: DateTime.fromMillisecondsSinceEpoch(((data[0].data[0] as EntityData)
+      //           .latest[EntityKeyType.TIME_SERIES]!['hum'] as TsValue)
+      //           .ts),
+      //       yValue: double.parse(((data[0].data[0] as EntityData)
+      //               .latest[EntityKeyType.TIME_SERIES]!['hum'] as TsValue)
+      //           .value
+      //           .toString())));
+      //   tempData.add(ChartSampleData(
+      //       x: DateTime.fromMillisecondsSinceEpoch(((data[0].data[0] as EntityData)
+      //           .latest[EntityKeyType.TIME_SERIES]!['temp'] as TsValue)
+      //           .ts),
+      //       yValue: double.parse(((data[0].data[0] as EntityData)
+      //               .latest[EntityKeyType.TIME_SERIES]!['temp'] as TsValue)
+      //           .value
+      //           .toString())));
+      //   radonData.add(ChartSampleData(
+      //       x: DateTime.fromMillisecondsSinceEpoch(((data[0].data[0] as EntityData)
+      //           .latest[EntityKeyType.TIME_SERIES]!['radon'] as TsValue)
+      //           .ts),
+      //       yValue: double.parse(((data[0].data[0] as EntityData)
+      //               .latest[EntityKeyType.TIME_SERIES]!['radon'] as TsValue)
+      //           .value
+      //           .toString())));
+      //   vocData.add(ChartSampleData(
+      //       x: DateTime.fromMillisecondsSinceEpoch(((data[0].data[0] as EntityData)
+      //           .latest[EntityKeyType.TIME_SERIES]!['voc'] as TsValue)
+      //           .ts),
+      //       yValue: double.parse(((data[0].data[0] as EntityData)
+      //               .latest[EntityKeyType.TIME_SERIES]!['voc'] as TsValue)
+      //           .value
+      //           .toString())));
+      //   co2Data.add(ChartSampleData(
+      //       x: DateTime.fromMillisecondsSinceEpoch(((data[0].data[0] as EntityData)
+      //           .latest[EntityKeyType.TIME_SERIES]!['co2'] as TsValue)
+      //           .ts),
+      //       yValue: double.parse(((data[0].data[0] as EntityData)
+      //               .latest[EntityKeyType.TIME_SERIES]!['co2'] as TsValue)
+      //           .value
+      //           .toString())));
+      //   pmData.add(ChartSampleData(
+      //       x: DateTime.fromMillisecondsSinceEpoch(((data[0].data[0] as EntityData)
+      //           .latest[EntityKeyType.TIME_SERIES]!['pm'] as TsValue)
+      //           .ts),
+      //       yValue: double.parse(((data[0].data[0] as EntityData)
+      //               .latest[EntityKeyType.TIME_SERIES]!['pm'] as TsValue)
+      //           .value
+      //           .toString())));
+      //   noxData.add(ChartSampleData(
+      //       x: DateTime.fromMillisecondsSinceEpoch(((data[0].data[0] as EntityData)
+      //           .latest[EntityKeyType.TIME_SERIES]!['nox'] as TsValue)
+      //           .ts),
+      //       yValue: double.parse(((data[0].data[0] as EntityData)
+      //               .latest[EntityKeyType.TIME_SERIES]!['nox'] as TsValue)
+      //           .value
+      //           .toString())));
+      // });
+
+       print( dataUpdate.data);
+       print('-0-0-0890890i-s09d0-0osda-s-0s-a0s-a0s-a0');
+
     });
     var res = await constantController.tbClient
         .getWidgetService()
@@ -124,41 +144,30 @@ class _DeviceDetailState extends State<DeviceDetail> {
 
   void getGraphData() async {
     // Prepare list of queried device fields
-    var deviceFields = <EntityKey>[
-      EntityKey(type: EntityKeyType.ENTITY_FIELD, key: 'name'),
-      EntityKey(type: EntityKeyType.ENTITY_FIELD, key: 'type'),
-      EntityKey(type: EntityKeyType.ENTITY_FIELD, key: 'createdTime')
-    ];
-
-    // Prepare list of queried device timeseries
-    var deviceTelemetry = <EntityKey>[
-      EntityKey(type: EntityKeyType.TIME_SERIES, key: 'temperature'),
-      EntityKey(type: EntityKeyType.TIME_SERIES, key: 'humidity')
-    ];
 
     // Create entity query with provided entity filter, queried fields and page link
     var devicesQuery = EntityDataQuery(
         entityFilter: SingleEntityFilter(
             singleEntity: DeviceId("e2dd9ae0-342d-11ed-a05f-bda054e13867")),
-        entityFields: deviceFields,
-        latestValues: deviceTelemetry,
         pageLink: EntityDataPageLink(
             pageSize: 10,
             sortOrder: EntityDataSortOrder(
                 key: EntityKey(
                     type: EntityKeyType.ENTITY_FIELD, key: 'createdTime'),
                 direction: EntityDataSortOrderDirection.DESC)));
-
+    var currentTime = DateTime.now().subtract(const Duration(hours: 1)).millisecondsSinceEpoch;
+    var timeWindow = const Duration(seconds: 30).inMilliseconds;
     var tsCmd = TimeSeriesCmd(
-        agg: Aggregation.AVG,
-        limit: 21,
-        interval: 30000,
-        keys: ['temp', 'hum', 'radon', 'voc', 'co2', 'pm', 'nox'],
-        startTs: 1663674780000,
-        timeWindow: 630000);
 
+        agg: Aggregation.NONE,
+        limit: 100,
+        fetchLatestPreviousPoint: true,
+        keys: ['temp', 'hum', 'radon', 'voc', 'co2', 'pm', 'nox'],
+        startTs: timeWindow,
+        timeWindow: 630000);
+    var hisCmd = EntityHistoryCmd(   keys: ['temp', 'hum', 'radon', 'voc', 'co2', 'pm', 'nox'], startTs: DateTime.now().subtract(const Duration(hours: 1)).millisecondsSinceEpoch, endTs: DateTime.now().add(const Duration(minutes: 10)).millisecondsSinceEpoch);
     // Create subscription command with entities query and timeseries subscription
-    var cmd = EntityDataCmd(query: devicesQuery, tsCmd: tsCmd);
+    var cmd = EntityDataCmd(query: devicesQuery,tsCmd: tsCmd, historyCmd:hisCmd );
 
     // Create subscription with provided subscription command
     var telemetryService = constantController.tbClient.getTelemetryService();
@@ -167,70 +176,143 @@ class _DeviceDetailState extends State<DeviceDetail> {
     // Create listener to get data updates from WebSocket
     subscription.entityDataStream.listen((entityDataUpdate) {
       DataUpdate dataUpdate = entityDataUpdate;
-
-        setState((){
-          if (dataUpdate.update != null) {
-            EntityData entityData = dataUpdate.update![0];
-
-            print(entityData);
-            if (entityData.timeseries['hum'] != null) {
-              hum.add((entityData.timeseries['hum'] as List<TsValue>)[0].value);
-              humData.add(ChartSampleData(
-                  x: DateTime.now(), yValue: double.parse(hum.last.toString())));
-              //listSlot.add(FlSpot(i+1, double.parse(hum.last.toString())));
-            }
-            if (entityData.timeseries['temp'] != null) {
-              temp.add((entityData.timeseries['temp'] as List<TsValue>)[0].value);
-              tempData.add(ChartSampleData(
-                  x: DateTime.now(), yValue: double.parse(temp.last.toString())));
-            }
-            if (entityData.timeseries['radon'] != null) {
-              radonData.add(ChartSampleData(
-                  x: DateTime.now(),
-                  yValue: double.parse(
-                      (entityData.timeseries['radon'] as List<TsValue>)[0]
-                          .value!)));
-            }
-            if (entityData.timeseries['co2'] != null) {
-              co2Data.add(ChartSampleData(
-                  x: DateTime.now(),
-                  yValue: double.parse(
-                      (entityData.timeseries['co2'] as List<TsValue>)[0]
-                          .value!)));
-            }
-            if (entityData.timeseries['voc'] != null) {
-              vocData.add(ChartSampleData(
-                  x: DateTime.now(),
-                  yValue: double.parse(
-                      (entityData.timeseries['voc'] as List<TsValue>)[0]
-                          .value!)));
-            }
-            if (entityData.timeseries['pm'] != null) {
-              pmData.add(ChartSampleData(
-                  x: DateTime.now(),
-                  yValue: double.parse(
-                      (entityData.timeseries['pm'] as List<TsValue>)[0].value!)));
-            }
-            if (entityData.timeseries['nox'] != null) {
-              noxData.add(ChartSampleData(
-                  x: DateTime.now(),
-                  yValue: double.parse(
-                      (entityData.timeseries['nox'] as List<TsValue>)[0]
-                          .value!)));
-            }
+    if(dataUpdate.data!=null){
+      EntityData historyData = dataUpdate.data!.data[0];
+      if(historyData.timeseries['radon']!.isNotEmpty){
+        for(var i in historyData.timeseries['radon']!){
+          radonData.add(ChartSampleData(
+              x: DateTime.fromMillisecondsSinceEpoch(i.ts),
+              yValue: double.parse(
+                  (i.value!))));
+        }
+      }
+      if(historyData.timeseries['hum']!.isNotEmpty){
+        for(var i in historyData.timeseries['hum']!){
+          humData.add(ChartSampleData(
+              x: DateTime.fromMillisecondsSinceEpoch(i.ts),
+              yValue: double.parse(
+                  (i.value!))));
+        }
+      }
+      if(historyData.timeseries['temp']!.isNotEmpty){
+        for(var i in historyData.timeseries['temp']!){
+          tempData.add(ChartSampleData(
+              x: DateTime.fromMillisecondsSinceEpoch(i.ts),
+              yValue: double.parse(
+                  (i.value!))));
+        }
+      }
+      if(historyData.timeseries['voc']!.isNotEmpty){
+        for(var i in historyData.timeseries['voc']!){
+          vocData.add(ChartSampleData(
+              x: DateTime.fromMillisecondsSinceEpoch(i.ts),
+              yValue: double.parse(
+                  (i.value!))));
+        }
+      }
+      if(historyData.timeseries['co2']!.isNotEmpty){
+        int j=0;
+        for(var i in historyData.timeseries['co2']!){
+          if(j==0){
+            j=j+1;
+            continue;
           }
-        });
+          co2Data.add(ChartSampleData(
+              x: DateTime.fromMillisecondsSinceEpoch(i.ts),
+              yValue: double.parse(
+                  (i.value!))));
+        }
+      }
+      if(historyData.timeseries['pm']!.isNotEmpty){
+        for(var i in historyData.timeseries['pm']!){
+          pmData.add(ChartSampleData(
+              x: DateTime.fromMillisecondsSinceEpoch(i.ts),
+              yValue: double.parse(
+                  (i.value!))));
+        }
+      }
+      if(historyData.timeseries['nox']!.isNotEmpty){
+        for(var i in historyData.timeseries['nox']!){
+          noxData.add(ChartSampleData(
+              x: DateTime.fromMillisecondsSinceEpoch(i.ts),
+              yValue: double.parse(
+                  (i.value!))));
+        }
+      }
+      print(historyData.timeseries['radon']);
+    }
+      print('0-0-0-0-0-0-0-0-0-0-');
+      print(dataUpdate.update);
+      setState(() {
+        if (dataUpdate.update != null) {
+          EntityData entityData = dataUpdate.update![0];
+          print('8787878787878787');
+          if (entityData.timeseries['hum'] != null&& (entityData.timeseries['hum'] as List<TsValue>).isNotEmpty) {
+            hum.add((entityData.timeseries['hum'] as List<TsValue>)[0].value);
+            humData.add(ChartSampleData(
+                x: DateTime.fromMillisecondsSinceEpoch((entityData.timeseries['hum'] as List<TsValue>)[0].ts), yValue: double.parse(hum.last.toString())));
+            humData.sort((a,b)=>a.x.compareTo(b.x));
+            //listSlot.add(FlSpot(i+1, double.parse(hum.last.toString())));
+          }
+          if (entityData.timeseries['temp'] != null && (entityData.timeseries['temp'] as List<TsValue>).isNotEmpty) {
+            temp.add((entityData.timeseries['temp'] as List<TsValue>)[0].value);
+            tempData.add(ChartSampleData(
+                x: DateTime.fromMillisecondsSinceEpoch((entityData.timeseries['temp'] as List<TsValue>)[0].ts), yValue: double.parse(temp.last.toString())));
+            tempData.sort((a,b)=>a.x.compareTo(b.x));
+          }
+          if (entityData.timeseries['radon'] != null && (entityData.timeseries['radon'] as List<TsValue>).isNotEmpty) {
+            radonData.add(ChartSampleData(
+                x: DateTime.fromMillisecondsSinceEpoch((entityData.timeseries['radon'] as List<TsValue>)[0].ts),
+                yValue: double.parse(
+                    (entityData.timeseries['radon'] as List<TsValue>)[0]
+                        .value!)));
+            radonData.sort((a,b)=>a.x.compareTo(b.x));
+          }
+          if (entityData.timeseries['co2'] != null && (entityData.timeseries['co2'] as List<TsValue>).isNotEmpty) {
+            co2Data.add(ChartSampleData(
+                x: DateTime.fromMillisecondsSinceEpoch((entityData.timeseries['co2'] as List<TsValue>)[0].ts),
+                yValue: double.parse(
+                    (entityData.timeseries['co2'] as List<TsValue>)[0]
+                        .value!)));
+            co2Data.sort((a,b)=>a.x.compareTo(b.x));
+          }
+          if (entityData.timeseries['voc'] != null && (entityData.timeseries['voc'] as List<TsValue>).isNotEmpty) {
+            vocData.add(ChartSampleData(
+                x: DateTime.fromMillisecondsSinceEpoch((entityData.timeseries['voc'] as List<TsValue>)[0].ts),
+                yValue: double.parse(
+                    (entityData.timeseries['voc'] as List<TsValue>)[0]
+                        .value!)));
+            vocData.sort((a,b)=>a.x.compareTo(b.x));
+          }
+          if (entityData.timeseries['pm'] != null && (entityData.timeseries['pm'] as List<TsValue>).isNotEmpty) {
+            pmData.add(ChartSampleData(
+                x: DateTime.fromMillisecondsSinceEpoch((entityData.timeseries['pm'] as List<TsValue>)[0].ts),
+                yValue: double.parse(
+                    (entityData.timeseries['pm'] as List<TsValue>)[0].value!)));
+            pmData.sort((a,b)=>a.x.compareTo(b.x));
+          }
+          if (entityData.timeseries['nox'] != null && (entityData.timeseries['nox'] as List<TsValue>).isNotEmpty) {
+            noxData.add(ChartSampleData(
+                x:DateTime.fromMillisecondsSinceEpoch((entityData.timeseries['nox'] as List<TsValue>)[0].ts),
+                yValue: double.parse(
+                    (entityData.timeseries['nox'] as List<TsValue>)[0]
+                        .value!)));
+            noxData.sort((a,b)=>a.x.compareTo(b.x));
+          }
+        }
+      });
 
-      print('Received entity data update: $entityDataUpdate');
-      print('/*/*/*/*/*/*/*/*/*/*/*/*/');
     });
 
     // Perform subscribe (send subscription command via WebSocket API and listen for responses)
     subscription.subscribe();
   }
 
+
   @override
   void initState() {
+    _trackballBehavior = TrackballBehavior(
+        enable: true, activationMode: ActivationMode.singleTap);
     getData();
     getGraphData();
 
@@ -247,562 +329,467 @@ class _DeviceDetailState extends State<DeviceDetail> {
           padding: const EdgeInsets.all(56.0),
           child: Column(
             children: [
-              TopBar(),
-              SizedBox(
+              const TopBar(),
+              const SizedBox(
                 height: 35,
               ),
-              data.isNotEmpty?Container(
-                padding: EdgeInsets.symmetric(vertical: 20,horizontal: 16),
-                height: 80,
-                width: width+40,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Color(0xffECEFF1))
-                ),
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    Container(
-                      color: Color(0xffECEFF1).withOpacity(0.4),
-                      height: 40,
-                      child: Row(
+              data.isNotEmpty
+                  ? Container(
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                      height: 80,
+                      width: width + 40,
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: const Color(0xffECEFF1))),
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
                         children: [
                           Container(
-                            height: 40,
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                                color: Color(0xff0ACF84),
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(4),
-                                  bottomLeft: Radius.circular(4),
-                                )),
-                            child: Center(
-                              child: Text(
-                                "Good",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w700, fontSize: 12),
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 12,
-                          ),
-                          Text(
-                            "SCORE   ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xff78909C)),
-                          ),
-                          Text(
-                            "80  ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 18),
-                          ),
-                          Text(
-                            "/  100",
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 5,),
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                      color: Color(0xffECEFF1).withOpacity(0.4),
-                      height: 40,
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: Color(0xff0ACF84),
-                            radius: 7,
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            "RADON   ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xff78909C)),
-                          ),
-                          Text(
-                            ((data[0].data[0] as EntityData).latest[
-                              EntityKeyType.TIME_SERIES]!['radon']
-                              as TsValue)
-                              .value
-                              .toString()+"  ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 18),
-                          ),
-                          Text(
-                            " Bq/m3",
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 5,),
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                      color: Color(0xffECEFF1).withOpacity(0.4),
-                      height: 40,
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: Color(0xffFD4C56),
-                            radius: 7,
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            "CO2   ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xff78909C)),
-                          ),
-                          Text(
-                            ((data[0].data[0] as EntityData).latest[
-                            EntityKeyType.TIME_SERIES]!['co2']
-                            as TsValue)
-                                .value
-                                .toString()+"  ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 18),
-                          ),
-                          Text(
-                            " / 100",
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 5,),
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                      color: Color(0xffECEFF1).withOpacity(0.4),
-                      height: 40,
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: Color(0xff0ACF84),
-                            radius: 7,
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            "NO2   ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xff78909C)),
-                          ),
-                          Text(
-                            ((data[0].data[0] as EntityData).latest[
-                            EntityKeyType.TIME_SERIES]!['nox']
-                            as TsValue)
-                                .value
-                                .toString()+"80  ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 18),
-                          ),
-                          Text(
-                            " /100",
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 5,),
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                      color: Color(0xffECEFF1).withOpacity(0.4),
-                      height: 40,
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: Color(0xff0ACF84),
-                            radius: 7,
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            "VOC   ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xff78909C)),
-                          ),
-                          Text(
-                            ((data[0].data[0] as EntityData).latest[
-                            EntityKeyType.TIME_SERIES]!['voc']
-                            as TsValue)
-                                .value
-                                .toString()+"  ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 18),
-                          ),
-                          Text(
-                            " /100",
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 5,),
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                      color: Color(0xffECEFF1).withOpacity(0.4),
-                      height: 40,
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: Color(0xff0ACF84),
-                            radius: 7,
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            "DUST   ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xff78909C)),
-                          ),
-                          Text(
-                            "80  ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 18),
-                          ),
-                          Text(
-                            " ug/m3",
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 5,),
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                      color: Color(0xffECEFF1).withOpacity(0.4),
-                      height: 40,
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: Color(0xff0ACF84),
-                            radius: 7,
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            "HUMDITY   ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xff78909C)),
-                          ),
-                          Text(
-                            (double.parse(((data[0].data[0] as EntityData).latest[
-                            EntityKeyType.TIME_SERIES]!['hum']
-                            as TsValue)
-                                .value
-                                .toString())).toPrecision(2).toString()+"  ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 18),
-                          ),
-                          Text(
-                            " %",
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 5,),
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                      color: Color(0xffECEFF1).withOpacity(0.4),
-                      height: 40,
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: Color(0xff0ACF84),
-                            radius: 7,
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            "TEMPERATURE   ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xff78909C)),
-                          ),
-                          Text(
-                            (double.parse(((data[0].data[0] as EntityData).latest[
-                            EntityKeyType.TIME_SERIES]!['temp']
-                            as TsValue)
-                                .value
-                                .toString())).toPrecision(2).toString()+"  ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 18),
-                          ),
-                          Text(
-                            " C",
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 5,),
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                      color: Color(0xffECEFF1).withOpacity(0.4),
-                      height: 40,
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: Color(0xff0ACF84),
-                            radius: 7,
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            "PRESSURE   ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xff78909C)),
-                          ),
-                          Text(
-                            "30  ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 18),
-                          ),
-                          Text(
-                            " C",
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 5,),
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                      color: Color(0xffECEFF1).withOpacity(0.4),
-                      height: 40,
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: Color(0xff0ACF84),
-                            radius: 7,
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            "LIGHT   ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xff78909C)),
-                          ),
-                          Text(
-                            "98  ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 18),
-                          ),
-                          Text(
-                            " lx",
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 5,),
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                      color: Color(0xffECEFF1).withOpacity(0.4),
-                      height: 40,
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: Color(0xff0ACF84),
-                            radius: 7,
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          Text(
-                            "NOISE   ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xff78909C)),
-                          ),
-                          Text(
-                            "30  ",
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 18),
-                          ),
-                          Text(
-                            " db",
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ):SizedBox(),
-              SizedBox(
-                height: 23,
-              ),
-              SizedBox(
-                width: width,
-                child: Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  children: [
-                      IntrinsicWidth(
-                        child: Wrap(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(vertical: 8,horizontal: 12),
-                            decoration: BoxDecoration(
-                                border: Border.all(color: Color(0xffECEFF1))
-                            ),
-                            height: 40,
-                            child: Text("Last 12 Hours"),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(vertical: 8,horizontal: 12),
-                            decoration: BoxDecoration(
-                                border: Border.all(color: Color(0xffECEFF1))
-                            ),
-                            height: 40,
-                            child: Text("Last 24 Hours"),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(vertical: 8,horizontal: 12),
-                            decoration: BoxDecoration(
-                                border: Border.all(color: Color(0xffECEFF1))
-                            ),
-                            height: 40,
-                            child: Text("Last Week"),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(vertical: 8,horizontal: 12),
-                            decoration: BoxDecoration(
-                                border: Border.all(color: Color(0xffECEFF1))
-                            ),
-                            height: 40,
-                            child: Text("Last Month"),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(vertical: 8,horizontal: 12),
-                            decoration: BoxDecoration(
-                                border: Border.all(color: Color(0xffECEFF1))
-                            ),
-                            height: 40,
-                            child: Text("Last 6 Months"),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(vertical: 8,horizontal: 12),
-                            decoration: BoxDecoration(
-                                border: Border.all(color: Color(0xffECEFF1))
-                            ),
-                            height: 40,
-                            child: Text("Last Year"),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(vertical: 8,horizontal: 12),
-                            decoration: BoxDecoration(
-                                border: Border.all(color: Color(0xffECEFF1))
-                            ),
-                            height: 40,
-                            child: Text("Last Custom"),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          IntrinsicWidth(
-                            child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 8,horizontal: 12),
-                              decoration: BoxDecoration(
-                                  border: Border.all(color: Color(0xffECEFF1))
-                              ),
-                              height: 40,
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.check_box_outline_blank,size: 25,),
-                                  SizedBox(width: 12,),
-                                  Text("Consider usage hours"),
-                                ],
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                        ],
-                    ),
-                      ),
-                    IntrinsicWidth(
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(vertical: 8,horizontal: 12),
-                            decoration: BoxDecoration(
-                                border: Border.all(color: Color(0xffECEFF1))
-                            ),
+                            color: const Color(0xffECEFF1).withOpacity(0.4),
                             height: 40,
                             child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Image.asset('images/collapse_charts.png'),
-                                SizedBox(width: 12,),
-                                Text("Collapse charts"),
+                                Container(
+                                  height: 40,
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: const BoxDecoration(
+                                      color: Color(0xff0ACF84),
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(4),
+                                        bottomLeft: Radius.circular(4),
+                                      )),
+                                  child: const Center(
+                                    child: Text(
+                                      "Good",
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 12),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  width: 12,
+                                ),
+                                const Text(
+                                  "SCORE   ",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xff78909C)),
+                                ),
+                                const Text(
+                                  "80  ",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18),
+                                ),
+                                const Text(
+                                  "/  100",
+                                ),
                               ],
                             ),
                           ),
+                          const SizedBox(
+                            width: 5,
+                          ),
                           Container(
-                            padding: EdgeInsets.symmetric(vertical: 8,horizontal: 12),
-                            decoration: BoxDecoration(
-                                border: Border.all(color: Color(0xffECEFF1))
-                            ),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            color: const Color(0xffECEFF1).withOpacity(0.4),
                             height: 40,
                             child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Image.asset('images/download.png'),
-                                SizedBox(width: 12,),
-                                Text("Exports to CSV"),
+                                const CircleAvatar(
+                                  backgroundColor: const Color(0xff0ACF84),
+                                  radius: 7,
+                                ),
+                                const SizedBox(
+                                  width: 8,
+                                ),
+                                const Text(
+                                  "RADON   ",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xff78909C)),
+                                ),
+                                Text(
+                                  ((data[0].data[0] as EntityData).latest[
+                                                  EntityKeyType
+                                                      .TIME_SERIES]!['radon']
+                                              as TsValue)
+                                          .value
+                                          .toString() +
+                                      "  ",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18),
+                                ),
+                                const Text(
+                                  " Bq/m3",
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            color: const Color(0xffECEFF1).withOpacity(0.4),
+                            height: 40,
+                            child: Row(
+                              children: [
+                                const CircleAvatar(
+                                  backgroundColor: Color(0xffFD4C56),
+                                  radius: 7,
+                                ),
+                                const SizedBox(
+                                  width: 8,
+                                ),
+                                const Text(
+                                  "CO2   ",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xff78909C)),
+                                ),
+                                Text(
+                                  ((data[0].data[0] as EntityData).latest[
+                                                  EntityKeyType
+                                                      .TIME_SERIES]!['co2']
+                                              as TsValue)
+                                          .value
+                                          .toString() +
+                                      "  ",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18),
+                                ),
+                                const Text(
+                                  " / 100",
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            color: const Color(0xffECEFF1).withOpacity(0.4),
+                            height: 40,
+                            child: Row(
+                              children: [
+                                const CircleAvatar(
+                                  backgroundColor: const Color(0xff0ACF84),
+                                  radius: 7,
+                                ),
+                                const SizedBox(
+                                  width: 8,
+                                ),
+                                const Text(
+                                  "NO2   ",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xff78909C)),
+                                ),
+                                Text(
+                                  ((data[0].data[0] as EntityData).latest[
+                                                  EntityKeyType
+                                                      .TIME_SERIES]!['nox']
+                                              as TsValue)
+                                          .value
+                                          .toString() +
+                                      "80  ",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18),
+                                ),
+                                const Text(
+                                  " /100",
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            color: const Color(0xffECEFF1).withOpacity(0.4),
+                            height: 40,
+                            child: Row(
+                              children: [
+                                const CircleAvatar(
+                                  backgroundColor: const Color(0xff0ACF84),
+                                  radius: 7,
+                                ),
+                                const SizedBox(
+                                  width: 8,
+                                ),
+                                const Text(
+                                  "VOC   ",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xff78909C)),
+                                ),
+                                Text(
+                                  ((data[0].data[0] as EntityData).latest[
+                                                  EntityKeyType
+                                                      .TIME_SERIES]!['voc']
+                                              as TsValue)
+                                          .value
+                                          .toString() +
+                                      "  ",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18),
+                                ),
+                                const Text(
+                                  " /100",
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            color: const Color(0xffECEFF1).withOpacity(0.4),
+                            height: 40,
+                            child: Row(
+                              children: const [
+                                CircleAvatar(
+                                  backgroundColor: Color(0xff0ACF84),
+                                  radius: 7,
+                                ),
+                                SizedBox(
+                                  width: 8,
+                                ),
+                                Text(
+                                  "DUST   ",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xff78909C)),
+                                ),
+                                Text(
+                                  "80  ",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18),
+                                ),
+                                Text(
+                                  " ug/m3",
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            color: const Color(0xffECEFF1).withOpacity(0.4),
+                            height: 40,
+                            child: Row(
+                              children: [
+                                const CircleAvatar(
+                                  backgroundColor: Color(0xff0ACF84),
+                                  radius: 7,
+                                ),
+                                const SizedBox(
+                                  width: 8,
+                                ),
+                                const Text(
+                                  "HUMDITY   ",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xff78909C)),
+                                ),
+                                Text(
+                                  (double.parse(((data[0].data[0] as EntityData)
+                                                          .latest[
+                                                      EntityKeyType
+                                                          .TIME_SERIES]!['hum']
+                                                  as TsValue)
+                                              .value
+                                              .toString()))
+                                          .toPrecision(2)
+                                          .toString() +
+                                      "  ",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18),
+                                ),
+                                const Text(
+                                  " %",
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            color: const Color(0xffECEFF1).withOpacity(0.4),
+                            height: 40,
+                            child: Row(
+                              children: [
+                                const CircleAvatar(
+                                  backgroundColor: const Color(0xff0ACF84),
+                                  radius: 7,
+                                ),
+                                const SizedBox(
+                                  width: 8,
+                                ),
+                                const Text(
+                                  "TEMPERATURE   ",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xff78909C)),
+                                ),
+                                Text(
+                                  (double.parse(((data[0].data[0] as EntityData)
+                                                          .latest[
+                                                      EntityKeyType
+                                                          .TIME_SERIES]!['temp']
+                                                  as TsValue)
+                                              .value
+                                              .toString()))
+                                          .toPrecision(2)
+                                          .toString() +
+                                      "  ",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18),
+                                ),
+                                const Text(
+                                  " C",
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            color: const Color(0xffECEFF1).withOpacity(0.4),
+                            height: 40,
+                            child: Row(
+                              children: const [
+                                CircleAvatar(
+                                  backgroundColor: Color(0xff0ACF84),
+                                  radius: 7,
+                                ),
+                                SizedBox(
+                                  width: 8,
+                                ),
+                                Text(
+                                  "PRESSURE   ",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xff78909C)),
+                                ),
+                                Text(
+                                  "30  ",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18),
+                                ),
+                                Text(
+                                  " C",
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            color: const Color(0xffECEFF1).withOpacity(0.4),
+                            height: 40,
+                            child: Row(
+                              children: const [
+                                CircleAvatar(
+                                  backgroundColor: Color(0xff0ACF84),
+                                  radius: 7,
+                                ),
+                                SizedBox(
+                                  width: 8,
+                                ),
+                                Text(
+                                  "LIGHT   ",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xff78909C)),
+                                ),
+                                Text(
+                                  "98  ",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18),
+                                ),
+                                Text(
+                                  " lx",
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            color: const Color(0xffECEFF1).withOpacity(0.4),
+                            height: 40,
+                            child: Row(
+                              children: const [
+                                CircleAvatar(
+                                  backgroundColor: Color(0xff0ACF84),
+                                  radius: 7,
+                                ),
+                                SizedBox(
+                                  width: 8,
+                                ),
+                                Text(
+                                  "NOISE   ",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xff78909C)),
+                                ),
+                                Text(
+                                  "30  ",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18),
+                                ),
+                                Text(
+                                  " db",
+                                ),
                               ],
                             ),
                           ),
                         ],
-
                       ),
                     )
-                  ],
-                ),
+                  : const SizedBox(),
+              const SizedBox(
+                height: 23,
               ),
-              SizedBox(
+              const ButtonList(),
+              const SizedBox(
                 height: 23,
               ),
               Container(
@@ -814,7 +801,9 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     Row(
                       children: [
                         Image.asset('/images/humidity.png'),
-                        SizedBox(width: 8,),
+                        const SizedBox(
+                          width: 8,
+                        ),
                         const Text(
                           "Humidity - Last 12 hours",
                           style:
@@ -826,25 +815,32 @@ class _DeviceDetailState extends State<DeviceDetail> {
                       height: 24,
                     ),
                     SfCartesianChart(
+
                         plotAreaBorderColor: Colors.transparent,
+
                         primaryYAxis: CategoryAxis(
-                            minimum: 0, maximum: 100, interval: 20,
+
+                            minimum: 0,
+                            maximum: 100,
+                            interval: 20,
+                            axisLabelFormatter: (cv)=>ChartAxisLabel(cv.text,TextStyle(color: Colors.red)),
                             majorGridLines: const MajorGridLines(width: 0),
                             minorGridLines: const MinorGridLines(width: 0)),
                         primaryXAxis: DateTimeAxis(
-                            desiredIntervals: 1,
-                            interval: 1,
+                            desiredIntervals: 10,
+                            interval: 10,
                             maximum: DateTime.now().add(
-                              Duration(hours: 0, minutes: 5, seconds: 59),
+                              const Duration(hours: 0, minutes: 5, seconds: 59),
                             ),
                             dateFormat: DateFormat.jm(),
                             majorGridLines: const MajorGridLines(width: 0),
                             minorGridLines: const MinorGridLines(width: 0)),
                         series: <ChartSeries<ChartSampleData, DateTime>>[
                           AreaSeries<ChartSampleData, DateTime>(
-                              dataSource: humData,
+                              enableTooltip: true,
                               color: Colors.transparent,
-                              borderWidth: 4,
+                              dataSource: humData,
+                              borderWidth: 1.5,
                               borderGradient:
                                   const LinearGradient(colors: <Color>[
                                 Colors.green,
@@ -864,7 +860,6 @@ class _DeviceDetailState extends State<DeviceDetail> {
               const SizedBox(
                 height: 16,
               ),
-
               Container(
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
@@ -887,14 +882,17 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     SfCartesianChart(
                         plotAreaBorderColor: Colors.transparent,
                         primaryYAxis: CategoryAxis(
-                            minimum: 0, maximum: 1000, interval: 200,
+                            minimum: 0,
+                            maximum: 1000,
+                            interval: 200,
                             majorGridLines: const MajorGridLines(width: 0),
                             minorGridLines: const MinorGridLines(width: 0)),
                         primaryXAxis: DateTimeAxis(
-                            desiredIntervals: 1,
-                            interval: 1,
+                            labelFormat: '{value}°C',
+                            desiredIntervals: 10,
+                            interval: 10,
                             maximum: DateTime.now().add(
-                              Duration(hours: 0, minutes: 5, seconds: 59),
+                              const Duration(hours: 0, minutes: 5, seconds: 59),
                             ),
                             dateFormat: DateFormat.jm(),
                             majorGridLines: const MajorGridLines(width: 0),
@@ -911,7 +909,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                               ]),
                               dataSource: radonData,
                               color: Colors.transparent,
-                              borderWidth: 4,
+                              borderWidth: 1.5,
                               xValueMapper: (ChartSampleData sales, _) =>
                                   sales.x,
                               yValueMapper: (ChartSampleData sales, _) =>
@@ -942,17 +940,20 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     const SizedBox(
                       height: 24,
                     ),
-                    SfCartesianChart(
+                      SfCartesianChart(
                         plotAreaBorderColor: Colors.transparent,
                         primaryYAxis: CategoryAxis(
-                            minimum: -20, maximum: 100, interval: 20,
+
+                            minimum: -20,
+                            maximum: 100,
+                            interval: 20,
                             majorGridLines: const MajorGridLines(width: 0),
                             minorGridLines: const MinorGridLines(width: 0)),
                         primaryXAxis: DateTimeAxis(
-                            desiredIntervals: 1,
-                            interval: 1,
+                            desiredIntervals: 10,
+                            interval: 10,
                             maximum: DateTime.now().add(
-                              Duration(hours: 0, minutes: 5, seconds: 59),
+                              const Duration(hours: 0, minutes: 5, seconds: 59),
                             ),
                             dateFormat: DateFormat.jm(),
                             majorGridLines: const MajorGridLines(width: 0),
@@ -969,7 +970,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                               ]),
                               dataSource: tempData,
                               color: Colors.transparent,
-                              borderWidth: 4,
+                              borderWidth: 1.5,
                               xValueMapper: (ChartSampleData sales, _) =>
                                   sales.x,
                               yValueMapper: (ChartSampleData sales, _) =>
@@ -1003,20 +1004,24 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     SfCartesianChart(
                         plotAreaBorderColor: Colors.transparent,
                         primaryYAxis: CategoryAxis(
-                            minimum: 0, maximum: 600, interval: 200,
+                            minimum: 0,
+                            maximum: 600,
+                            interval: 200,
                             majorGridLines: const MajorGridLines(width: 0),
                             minorGridLines: const MinorGridLines(width: 0)),
                         primaryXAxis: DateTimeAxis(
-                            desiredIntervals: 1,
-                            interval: 1,
+                            labelFormat: '{value}°C',
+                            desiredIntervals: 10,
+                            interval: 10,
                             maximum: DateTime.now().add(
-                              Duration(hours: 0, minutes: 5, seconds: 59),
+                              const Duration(hours: 0, minutes: 5, seconds: 59),
                             ),
                             dateFormat: DateFormat.jm(),
                             majorGridLines: const MajorGridLines(width: 0),
                             minorGridLines: const MinorGridLines(width: 0)),
                         series: <ChartSeries<ChartSampleData, DateTime>>[
                           AreaSeries<ChartSampleData, DateTime>(
+                              enableTooltip: true,
                               borderGradient:
                                   const LinearGradient(colors: <Color>[
                                 Colors.green,
@@ -1026,7 +1031,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                                 0.9
                               ]),
                               dataSource: vocData,
-                              borderWidth: 4,
+                              borderWidth: 1.5,
                               color: Colors.transparent,
                               xValueMapper: (ChartSampleData sales, _) =>
                                   sales.x,
@@ -1067,10 +1072,10 @@ class _DeviceDetailState extends State<DeviceDetail> {
                             majorGridLines: const MajorGridLines(width: 0),
                             minorGridLines: const MinorGridLines(width: 0)),
                         primaryXAxis: DateTimeAxis(
-                            desiredIntervals: 1,
-                            interval: 1,
+                            desiredIntervals: 10,
+                            interval: 10,
                             maximum: DateTime.now().add(
-                              Duration(hours: 0, minutes: 5, seconds: 59),
+                              const Duration(hours: 0, minutes: 5, seconds: 59),
                             ),
                             dateFormat: DateFormat.jm(),
                             majorGridLines: const MajorGridLines(width: 0),
@@ -1078,7 +1083,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                         series: <ChartSeries<ChartSampleData, DateTime>>[
                           AreaSeries<ChartSampleData, DateTime>(
                               color: Colors.transparent,
-                              borderWidth: 4,
+                              borderWidth: 1.5,
                               borderGradient:
                                   const LinearGradient(colors: <Color>[
                                 Colors.green,
@@ -1096,7 +1101,6 @@ class _DeviceDetailState extends State<DeviceDetail> {
                   ],
                 ),
               ),
-
               const SizedBox(
                 height: 16,
               ),
@@ -1122,14 +1126,16 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     SfCartesianChart(
                         plotAreaBorderColor: Colors.transparent,
                         primaryYAxis: CategoryAxis(
-                            minimum: 0, maximum: 100, interval: 20,
+                            minimum: 0,
+                            maximum: 100,
+                            interval: 20,
                             majorGridLines: const MajorGridLines(width: 0),
                             minorGridLines: const MinorGridLines(width: 0)),
                         primaryXAxis: DateTimeAxis(
-                            desiredIntervals: 1,
-                            interval: 1,
+                            desiredIntervals: 10,
+                            interval: 10,
                             maximum: DateTime.now().add(
-                              Duration(hours: 0, minutes: 5, seconds: 59),
+                              const Duration(hours: 0, minutes: 5, seconds: 59),
                             ),
                             dateFormat: DateFormat.jm(),
                             majorGridLines: const MajorGridLines(width: 0),
@@ -1146,7 +1152,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                                 0.9
                               ]),
                               dataSource: pmData,
-                              borderWidth: 4,
+                              borderWidth: 1.5,
                               xValueMapper: (ChartSampleData sales, _) =>
                                   sales.x,
                               yValueMapper: (ChartSampleData sales, _) =>
@@ -1180,15 +1186,15 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     SfCartesianChart(
                         plotAreaBorderColor: Colors.transparent,
                         primaryYAxis: CategoryAxis(
-                          minimum: 0,
-                          maximum: 1,
+                            minimum: 0,
+                            maximum: 1,
                             majorGridLines: const MajorGridLines(width: 0),
                             minorGridLines: const MinorGridLines(width: 0)),
                         primaryXAxis: DateTimeAxis(
-                            desiredIntervals: 1,
-                            interval: 1,
+                            desiredIntervals: 10,
+                            interval: 10,
                             maximum: DateTime.now().add(
-                              Duration(hours: 0, minutes: 5, seconds: 59),
+                              const Duration(hours: 0, minutes: 5, seconds: 59),
                             ),
                             dateFormat: DateFormat.jm(),
                             majorGridLines: const MajorGridLines(width: 0),
@@ -1205,7 +1211,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                                 0.9
                               ]),
                               dataSource: noxData,
-                              borderWidth: 4,
+                              borderWidth: 1.5,
                               xValueMapper: (ChartSampleData sales, _) =>
                                   sales.x,
                               yValueMapper: (ChartSampleData sales, _) =>
@@ -1298,7 +1304,7 @@ class TopBar extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(
+        const SizedBox(
           height: 25,
         ),
         SizedBox(
@@ -1327,7 +1333,7 @@ class TopBar extends StatelessWidget {
                           )
                         ],
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 5,
                       ),
                       Row(
@@ -1346,7 +1352,7 @@ class TopBar extends StatelessWidget {
                           )
                         ],
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 5,
                       ),
                       Row(
@@ -1368,7 +1374,7 @@ class TopBar extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
                 IntrinsicWidth(
@@ -1425,7 +1431,7 @@ class TopBar extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
                 IntrinsicWidth(
@@ -1482,7 +1488,7 @@ class TopBar extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
                 IntrinsicWidth(
@@ -1531,3 +1537,170 @@ class TopBar extends StatelessWidget {
     );
   }
 }
+class ButtonList extends StatelessWidget {
+  const ButtonList({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
+    return SizedBox(
+      width: width,
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        children: [
+          IntrinsicWidth(
+            child: Wrap(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8, horizontal: 12),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xffECEFF1))),
+                  height: 40,
+                  child: const Text("Last 12 Hours"),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8, horizontal: 12),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xffECEFF1))),
+                  height: 40,
+                  child: const Text("Last 24 Hours"),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8, horizontal: 12),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xffECEFF1))),
+                  height: 40,
+                  child: const Text("Last Week"),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8, horizontal: 12),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xffECEFF1))),
+                  height: 40,
+                  child: const Text("Last Month"),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8, horizontal: 12),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xffECEFF1))),
+                  height: 40,
+                  child: const Text("Last 6 Months"),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8, horizontal: 12),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xffECEFF1))),
+                  height: 40,
+                  child: const Text("Last Year"),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8, horizontal: 12),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xffECEFF1))),
+                  height: 40,
+                  child: const Text("Last Custom"),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                IntrinsicWidth(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 8, horizontal: 12),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xffECEFF1))),
+                    height: 40,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: const [
+                        Icon(
+                          Icons.check_box_outline_blank,
+                          size: 25,
+                        ),
+                        SizedBox(
+                          width: 12,
+                        ),
+                        Text("Consider usage hours"),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+              ],
+            ),
+          ),
+          IntrinsicWidth(
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8, horizontal: 12),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xffECEFF1))),
+                  height: 40,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Image.asset('images/collapse_charts.png'),
+                      const SizedBox(
+                        width: 12,
+                      ),
+                      const Text("Collapse charts"),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8, horizontal: 12),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xffECEFF1))),
+                  height: 40,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Image.asset('images/download.png'),
+                      const SizedBox(
+                        width: 12,
+                      ),
+                      const Text("Exports to CSV"),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+
+

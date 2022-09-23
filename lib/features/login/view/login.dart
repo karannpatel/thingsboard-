@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thingsboard/constant.dart';
 import 'package:thingsboard/features/dashboard/view/dashboard.dart';
 import 'package:thingsboard/features/login/controller/loginController.dart';
@@ -143,12 +144,14 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     child: loginController.isLoading.value?const CircularProgressIndicator():const Text('Login'),
                     onPressed: ()async {
+                      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
                       try{
                         var res =await constantController.tbClient.login(LoginRequest('babylon99_de@gmx.de', 'Iot123!!'));
                        //var res =await constantController.tbClient.login(LoginRequest(nameController.text, passwordController.text));
                         print(constantController.tbClient.getAuthUser());
                         if(constantController.tbClient.isAuthenticated())
 
+                          sharedPreferences.setString('token', constantController.tbClient.getJwtToken()!);
                           constantController.tbClient.setUserFromJwtToken(constantController.tbClient.getJwtToken(), constantController.tbClient.getRefreshToken(), true);
                           Get.to(DashboardScreen());
                       }
