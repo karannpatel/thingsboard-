@@ -66,8 +66,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
     ]);
     subscription.entityDataStream.listen((entityDataUpdate) {
       DataUpdate dataUpdate = entityDataUpdate;
-      print(dataUpdate.data);
-      print('-0-0-0890890i-s09d0-0osda-s-0s-a0s-a0s-a0');
+      data.add(dataUpdate.data!);
     });
 
 
