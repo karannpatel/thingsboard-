@@ -7,6 +7,9 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:thingsboard/features/device/controller/device.dart';
+import 'package:thingsboard/features/device/view/widgets/buttonList.dart';
+import 'package:thingsboard/features/device/view/widgets/chartSampleData.dart';
+import 'package:thingsboard/features/device/view/widgets/topBar.dart';
 import 'package:thingsboard_pe_client/thingsboard_client.dart';
 
 import '../../../constant.dart';
@@ -20,7 +23,6 @@ class DeviceDetail extends StatefulWidget {
 }
 
 class _DeviceDetailState extends State<DeviceDetail> {
-  late TrackballBehavior _trackballBehavior;
   DeviceController deviceController = Get.put(DeviceController());
   ConstantController constantController = Get.put(ConstantController());
   List<PageData> data = [];
@@ -33,11 +35,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
   List<ChartSampleData> noxData = <ChartSampleData>[];
   List<ChartSampleData> vocData = <ChartSampleData>[];
   List<ChartSampleData> pmData = <ChartSampleData>[];
-  // List<FlSpot> listSlot =[
-  //   FlSpot(1, 1),
-  // ];
 
-  WidgetType? widgetType = null;
   var subscription;
   void getData() async {
     var telemetryService = constantController.tbClient.getTelemetryService();
@@ -68,76 +66,10 @@ class _DeviceDetailState extends State<DeviceDetail> {
     ]);
     subscription.entityDataStream.listen((entityDataUpdate) {
       DataUpdate dataUpdate = entityDataUpdate;
-      // setState(() {
-      //   data.add(dataUpdate.data!);
-      //   humData.add(ChartSampleData(
-      //       x: DateTime.fromMillisecondsSinceEpoch(((data[0].data[0] as EntityData)
-      //           .latest[EntityKeyType.TIME_SERIES]!['hum'] as TsValue)
-      //           .ts),
-      //       yValue: double.parse(((data[0].data[0] as EntityData)
-      //               .latest[EntityKeyType.TIME_SERIES]!['hum'] as TsValue)
-      //           .value
-      //           .toString())));
-      //   tempData.add(ChartSampleData(
-      //       x: DateTime.fromMillisecondsSinceEpoch(((data[0].data[0] as EntityData)
-      //           .latest[EntityKeyType.TIME_SERIES]!['temp'] as TsValue)
-      //           .ts),
-      //       yValue: double.parse(((data[0].data[0] as EntityData)
-      //               .latest[EntityKeyType.TIME_SERIES]!['temp'] as TsValue)
-      //           .value
-      //           .toString())));
-      //   radonData.add(ChartSampleData(
-      //       x: DateTime.fromMillisecondsSinceEpoch(((data[0].data[0] as EntityData)
-      //           .latest[EntityKeyType.TIME_SERIES]!['radon'] as TsValue)
-      //           .ts),
-      //       yValue: double.parse(((data[0].data[0] as EntityData)
-      //               .latest[EntityKeyType.TIME_SERIES]!['radon'] as TsValue)
-      //           .value
-      //           .toString())));
-      //   vocData.add(ChartSampleData(
-      //       x: DateTime.fromMillisecondsSinceEpoch(((data[0].data[0] as EntityData)
-      //           .latest[EntityKeyType.TIME_SERIES]!['voc'] as TsValue)
-      //           .ts),
-      //       yValue: double.parse(((data[0].data[0] as EntityData)
-      //               .latest[EntityKeyType.TIME_SERIES]!['voc'] as TsValue)
-      //           .value
-      //           .toString())));
-      //   co2Data.add(ChartSampleData(
-      //       x: DateTime.fromMillisecondsSinceEpoch(((data[0].data[0] as EntityData)
-      //           .latest[EntityKeyType.TIME_SERIES]!['co2'] as TsValue)
-      //           .ts),
-      //       yValue: double.parse(((data[0].data[0] as EntityData)
-      //               .latest[EntityKeyType.TIME_SERIES]!['co2'] as TsValue)
-      //           .value
-      //           .toString())));
-      //   pmData.add(ChartSampleData(
-      //       x: DateTime.fromMillisecondsSinceEpoch(((data[0].data[0] as EntityData)
-      //           .latest[EntityKeyType.TIME_SERIES]!['pm'] as TsValue)
-      //           .ts),
-      //       yValue: double.parse(((data[0].data[0] as EntityData)
-      //               .latest[EntityKeyType.TIME_SERIES]!['pm'] as TsValue)
-      //           .value
-      //           .toString())));
-      //   noxData.add(ChartSampleData(
-      //       x: DateTime.fromMillisecondsSinceEpoch(((data[0].data[0] as EntityData)
-      //           .latest[EntityKeyType.TIME_SERIES]!['nox'] as TsValue)
-      //           .ts),
-      //       yValue: double.parse(((data[0].data[0] as EntityData)
-      //               .latest[EntityKeyType.TIME_SERIES]!['nox'] as TsValue)
-      //           .value
-      //           .toString())));
-      // });
-
-       print( dataUpdate.data);
-       print('-0-0-0890890i-s09d0-0osda-s-0s-a0s-a0s-a0');
-
+      print(dataUpdate.data);
+      print('-0-0-0890890i-s09d0-0osda-s-0s-a0s-a0s-a0');
     });
-    var res = await constantController.tbClient
-        .getWidgetService()
-        .getWidgetType(false, "custom_widgets", 'single_value_average');
-    setState(() {
-      widgetType = res;
-    });
+
 
     subscription.subscribe();
   }
@@ -155,19 +87,28 @@ class _DeviceDetailState extends State<DeviceDetail> {
                 key: EntityKey(
                     type: EntityKeyType.ENTITY_FIELD, key: 'createdTime'),
                 direction: EntityDataSortOrderDirection.DESC)));
-    var currentTime = DateTime.now().subtract(const Duration(hours: 1)).millisecondsSinceEpoch;
+    var currentTime = DateTime.now()
+        .subtract(const Duration(hours: 1))
+        .millisecondsSinceEpoch;
     var timeWindow = const Duration(seconds: 30).inMilliseconds;
     var tsCmd = TimeSeriesCmd(
-
         agg: Aggregation.NONE,
         limit: 100,
         fetchLatestPreviousPoint: true,
         keys: ['temp', 'hum', 'radon', 'voc', 'co2', 'pm', 'nox'],
         startTs: timeWindow,
         timeWindow: 630000);
-    var hisCmd = EntityHistoryCmd(   keys: ['temp', 'hum', 'radon', 'voc', 'co2', 'pm', 'nox'], startTs: DateTime.now().subtract(const Duration(hours: 1)).millisecondsSinceEpoch, endTs: DateTime.now().add(const Duration(minutes: 10)).millisecondsSinceEpoch);
+    var hisCmd = EntityHistoryCmd(
+        keys: ['temp', 'hum', 'radon', 'voc', 'co2', 'pm', 'nox'],
+        startTs: DateTime.now()
+            .subtract(const Duration(hours: 1))
+            .millisecondsSinceEpoch,
+        endTs: DateTime.now()
+            .add(const Duration(minutes: 10))
+            .millisecondsSinceEpoch);
     // Create subscription command with entities query and timeseries subscription
-    var cmd = EntityDataCmd(query: devicesQuery,tsCmd: tsCmd, historyCmd:hisCmd );
+    var cmd =
+        EntityDataCmd(query: devicesQuery, tsCmd: tsCmd, historyCmd: hisCmd);
 
     // Create subscription with provided subscription command
     var telemetryService = constantController.tbClient.getTelemetryService();
@@ -176,143 +117,148 @@ class _DeviceDetailState extends State<DeviceDetail> {
     // Create listener to get data updates from WebSocket
     subscription.entityDataStream.listen((entityDataUpdate) {
       DataUpdate dataUpdate = entityDataUpdate;
-    if(dataUpdate.data!=null){
-      EntityData historyData = dataUpdate.data!.data[0];
-      if(historyData.timeseries['radon']!.isNotEmpty){
-        for(var i in historyData.timeseries['radon']!){
-          radonData.add(ChartSampleData(
-              x: DateTime.fromMillisecondsSinceEpoch(i.ts),
-              yValue: double.parse(
-                  (i.value!))));
-        }
-      }
-      if(historyData.timeseries['hum']!.isNotEmpty){
-        for(var i in historyData.timeseries['hum']!){
-          humData.add(ChartSampleData(
-              x: DateTime.fromMillisecondsSinceEpoch(i.ts),
-              yValue: double.parse(
-                  (i.value!))));
-        }
-      }
-      if(historyData.timeseries['temp']!.isNotEmpty){
-        for(var i in historyData.timeseries['temp']!){
-          tempData.add(ChartSampleData(
-              x: DateTime.fromMillisecondsSinceEpoch(i.ts),
-              yValue: double.parse(
-                  (i.value!))));
-        }
-      }
-      if(historyData.timeseries['voc']!.isNotEmpty){
-        for(var i in historyData.timeseries['voc']!){
-          vocData.add(ChartSampleData(
-              x: DateTime.fromMillisecondsSinceEpoch(i.ts),
-              yValue: double.parse(
-                  (i.value!))));
-        }
-      }
-      if(historyData.timeseries['co2']!.isNotEmpty){
-        int j=0;
-        for(var i in historyData.timeseries['co2']!){
-          if(j==0){
-            j=j+1;
-            continue;
+      if (dataUpdate.data != null) {
+        EntityData historyData = dataUpdate.data!.data[0];
+        if (historyData.timeseries['radon']!.isNotEmpty) {
+          for (var i in historyData.timeseries['radon']!) {
+            radonData.add(ChartSampleData(
+                x: DateTime.fromMillisecondsSinceEpoch(i.ts),
+                yValue: double.parse((i.value!))));
           }
-          co2Data.add(ChartSampleData(
-              x: DateTime.fromMillisecondsSinceEpoch(i.ts),
-              yValue: double.parse(
-                  (i.value!))));
         }
-      }
-      if(historyData.timeseries['pm']!.isNotEmpty){
-        for(var i in historyData.timeseries['pm']!){
-          pmData.add(ChartSampleData(
-              x: DateTime.fromMillisecondsSinceEpoch(i.ts),
-              yValue: double.parse(
-                  (i.value!))));
+        if (historyData.timeseries['hum']!.isNotEmpty) {
+          for (var i in historyData.timeseries['hum']!) {
+            humData.add(ChartSampleData(
+                x: DateTime.fromMillisecondsSinceEpoch(i.ts),
+                yValue: double.parse((i.value!))));
+          }
         }
-      }
-      if(historyData.timeseries['nox']!.isNotEmpty){
-        for(var i in historyData.timeseries['nox']!){
-          noxData.add(ChartSampleData(
-              x: DateTime.fromMillisecondsSinceEpoch(i.ts),
-              yValue: double.parse(
-                  (i.value!))));
+        if (historyData.timeseries['temp']!.isNotEmpty) {
+          for (var i in historyData.timeseries['temp']!) {
+            tempData.add(ChartSampleData(
+                x: DateTime.fromMillisecondsSinceEpoch(i.ts),
+                yValue: double.parse((i.value!))));
+          }
         }
+        if (historyData.timeseries['voc']!.isNotEmpty) {
+          for (var i in historyData.timeseries['voc']!) {
+            vocData.add(ChartSampleData(
+                x: DateTime.fromMillisecondsSinceEpoch(i.ts),
+                yValue: double.parse((i.value!))));
+          }
+        }
+        if (historyData.timeseries['co2']!.isNotEmpty) {
+          int j = 0;
+          for (var i in historyData.timeseries['co2']!) {
+            if (j == 0) {
+              j = j + 1;
+              continue;
+            }
+            co2Data.add(ChartSampleData(
+                x: DateTime.fromMillisecondsSinceEpoch(i.ts),
+                yValue: double.parse((i.value!))));
+          }
+        }
+        if (historyData.timeseries['pm']!.isNotEmpty) {
+          for (var i in historyData.timeseries['pm']!) {
+            pmData.add(ChartSampleData(
+                x: DateTime.fromMillisecondsSinceEpoch(i.ts),
+                yValue: double.parse((i.value!))));
+          }
+        }
+        if (historyData.timeseries['nox']!.isNotEmpty) {
+          for (var i in historyData.timeseries['nox']!) {
+            noxData.add(ChartSampleData(
+                x: DateTime.fromMillisecondsSinceEpoch(i.ts),
+                yValue: double.parse((i.value!))));
+          }
+        }
+        print(historyData.timeseries['radon']);
       }
-      print(historyData.timeseries['radon']);
-    }
       print('0-0-0-0-0-0-0-0-0-0-');
       print(dataUpdate.update);
       setState(() {
         if (dataUpdate.update != null) {
           EntityData entityData = dataUpdate.update![0];
           print('8787878787878787');
-          if (entityData.timeseries['hum'] != null&& (entityData.timeseries['hum'] as List<TsValue>).isNotEmpty) {
+          if (entityData.timeseries['hum'] != null &&
+              (entityData.timeseries['hum'] as List<TsValue>).isNotEmpty) {
             hum.add((entityData.timeseries['hum'] as List<TsValue>)[0].value);
             humData.add(ChartSampleData(
-                x: DateTime.fromMillisecondsSinceEpoch((entityData.timeseries['hum'] as List<TsValue>)[0].ts), yValue: double.parse(hum.last.toString())));
-            humData.sort((a,b)=>a.x.compareTo(b.x));
+                x: DateTime.fromMillisecondsSinceEpoch(
+                    (entityData.timeseries['hum'] as List<TsValue>)[0].ts),
+                yValue: double.parse(hum.last.toString())));
+            humData.sort((a, b) => a.x.compareTo(b.x));
             //listSlot.add(FlSpot(i+1, double.parse(hum.last.toString())));
           }
-          if (entityData.timeseries['temp'] != null && (entityData.timeseries['temp'] as List<TsValue>).isNotEmpty) {
+          if (entityData.timeseries['temp'] != null &&
+              (entityData.timeseries['temp'] as List<TsValue>).isNotEmpty) {
             temp.add((entityData.timeseries['temp'] as List<TsValue>)[0].value);
             tempData.add(ChartSampleData(
-                x: DateTime.fromMillisecondsSinceEpoch((entityData.timeseries['temp'] as List<TsValue>)[0].ts), yValue: double.parse(temp.last.toString())));
-            tempData.sort((a,b)=>a.x.compareTo(b.x));
+                x: DateTime.fromMillisecondsSinceEpoch(
+                    (entityData.timeseries['temp'] as List<TsValue>)[0].ts),
+                yValue: double.parse(temp.last.toString())));
+            tempData.sort((a, b) => a.x.compareTo(b.x));
           }
-          if (entityData.timeseries['radon'] != null && (entityData.timeseries['radon'] as List<TsValue>).isNotEmpty) {
+          if (entityData.timeseries['radon'] != null &&
+              (entityData.timeseries['radon'] as List<TsValue>).isNotEmpty) {
             radonData.add(ChartSampleData(
-                x: DateTime.fromMillisecondsSinceEpoch((entityData.timeseries['radon'] as List<TsValue>)[0].ts),
+                x: DateTime.fromMillisecondsSinceEpoch(
+                    (entityData.timeseries['radon'] as List<TsValue>)[0].ts),
                 yValue: double.parse(
                     (entityData.timeseries['radon'] as List<TsValue>)[0]
                         .value!)));
-            radonData.sort((a,b)=>a.x.compareTo(b.x));
+            radonData.sort((a, b) => a.x.compareTo(b.x));
           }
-          if (entityData.timeseries['co2'] != null && (entityData.timeseries['co2'] as List<TsValue>).isNotEmpty) {
+          if (entityData.timeseries['co2'] != null &&
+              (entityData.timeseries['co2'] as List<TsValue>).isNotEmpty) {
             co2Data.add(ChartSampleData(
-                x: DateTime.fromMillisecondsSinceEpoch((entityData.timeseries['co2'] as List<TsValue>)[0].ts),
+                x: DateTime.fromMillisecondsSinceEpoch(
+                    (entityData.timeseries['co2'] as List<TsValue>)[0].ts),
                 yValue: double.parse(
                     (entityData.timeseries['co2'] as List<TsValue>)[0]
                         .value!)));
-            co2Data.sort((a,b)=>a.x.compareTo(b.x));
+            co2Data.sort((a, b) => a.x.compareTo(b.x));
           }
-          if (entityData.timeseries['voc'] != null && (entityData.timeseries['voc'] as List<TsValue>).isNotEmpty) {
+          if (entityData.timeseries['voc'] != null &&
+              (entityData.timeseries['voc'] as List<TsValue>).isNotEmpty) {
             vocData.add(ChartSampleData(
-                x: DateTime.fromMillisecondsSinceEpoch((entityData.timeseries['voc'] as List<TsValue>)[0].ts),
+                x: DateTime.fromMillisecondsSinceEpoch(
+                    (entityData.timeseries['voc'] as List<TsValue>)[0].ts),
                 yValue: double.parse(
                     (entityData.timeseries['voc'] as List<TsValue>)[0]
                         .value!)));
-            vocData.sort((a,b)=>a.x.compareTo(b.x));
+            vocData.sort((a, b) => a.x.compareTo(b.x));
           }
-          if (entityData.timeseries['pm'] != null && (entityData.timeseries['pm'] as List<TsValue>).isNotEmpty) {
+          if (entityData.timeseries['pm'] != null &&
+              (entityData.timeseries['pm'] as List<TsValue>).isNotEmpty) {
             pmData.add(ChartSampleData(
-                x: DateTime.fromMillisecondsSinceEpoch((entityData.timeseries['pm'] as List<TsValue>)[0].ts),
+                x: DateTime.fromMillisecondsSinceEpoch(
+                    (entityData.timeseries['pm'] as List<TsValue>)[0].ts),
                 yValue: double.parse(
                     (entityData.timeseries['pm'] as List<TsValue>)[0].value!)));
-            pmData.sort((a,b)=>a.x.compareTo(b.x));
+            pmData.sort((a, b) => a.x.compareTo(b.x));
           }
-          if (entityData.timeseries['nox'] != null && (entityData.timeseries['nox'] as List<TsValue>).isNotEmpty) {
+          if (entityData.timeseries['nox'] != null &&
+              (entityData.timeseries['nox'] as List<TsValue>).isNotEmpty) {
             noxData.add(ChartSampleData(
-                x:DateTime.fromMillisecondsSinceEpoch((entityData.timeseries['nox'] as List<TsValue>)[0].ts),
+                x: DateTime.fromMillisecondsSinceEpoch(
+                    (entityData.timeseries['nox'] as List<TsValue>)[0].ts),
                 yValue: double.parse(
                     (entityData.timeseries['nox'] as List<TsValue>)[0]
                         .value!)));
-            noxData.sort((a,b)=>a.x.compareTo(b.x));
+            noxData.sort((a, b) => a.x.compareTo(b.x));
           }
         }
       });
-
     });
 
     // Perform subscribe (send subscription command via WebSocket API and listen for responses)
     subscription.subscribe();
   }
 
-
   @override
   void initState() {
-    _trackballBehavior = TrackballBehavior(
-        enable: true, activationMode: ActivationMode.singleTap);
     getData();
     getGraphData();
 
@@ -335,8 +281,8 @@ class _DeviceDetailState extends State<DeviceDetail> {
               ),
               data.isNotEmpty
                   ? Container(
-                      padding:
-                          const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 20, horizontal: 16),
                       height: 80,
                       width: width + 40,
                       decoration: BoxDecoration(
@@ -815,45 +761,70 @@ class _DeviceDetailState extends State<DeviceDetail> {
                       height: 24,
                     ),
                     SfCartesianChart(
-
-                        plotAreaBorderColor: Colors.transparent,
-
-                        primaryYAxis: CategoryAxis(
-
-                            minimum: 0,
-                            maximum: 100,
-                            interval: 20,
-                            axisLabelFormatter: (cv)=>ChartAxisLabel(cv.text,TextStyle(color: Colors.red)),
-                            majorGridLines: const MajorGridLines(width: 0),
-                            minorGridLines: const MinorGridLines(width: 0)),
-                        primaryXAxis: DateTimeAxis(
-                            desiredIntervals: 10,
-                            interval: 10,
-                            maximum: DateTime.now().add(
-                              const Duration(hours: 0, minutes: 5, seconds: 59),
-                            ),
-                            dateFormat: DateFormat.jm(),
-                            majorGridLines: const MajorGridLines(width: 0),
-                            minorGridLines: const MinorGridLines(width: 0)),
-                        series: <ChartSeries<ChartSampleData, DateTime>>[
-                          AreaSeries<ChartSampleData, DateTime>(
-                              enableTooltip: true,
-                              color: Colors.transparent,
-                              dataSource: humData,
+                      plotAreaBorderColor: Colors.red,
+                      trackballBehavior: TrackballBehavior(
+                          enable: true,
+                          activationMode: ActivationMode.singleTap,
+                          markerSettings: const TrackballMarkerSettings(
+                              markerVisibility: TrackballVisibilityMode.visible,
+                              shape: DataMarkerType.circle,
+                              width: 13,
+                              height: 13,
+                              borderColor: Colors.black,
+                              color: Color(0xffFC9626)),
+                          tooltipSettings: InteractiveTooltip(
+                              color: Colors.white,
                               borderWidth: 1.5,
-                              borderGradient:
-                                  const LinearGradient(colors: <Color>[
-                                Colors.green,
-                                Colors.red,
-                              ], stops: <double>[
-                                0.2,
-                                0.9
-                              ]),
-                              xValueMapper: (ChartSampleData sales, _) =>
-                                  sales.x,
-                              yValueMapper: (ChartSampleData sales, _) =>
-                                  sales.yValue)
-                        ]),
+                              borderColor: Color(0xffCFD8DC),
+                              // Formatting trackball tooltip text
+                              format: 'point.x : point.y%',
+                              textStyle: TextStyle(color: Colors.black))),
+                      // tooltipBehavior: TooltipBehavior(enable: true,header: "Humidity"),
+                      plotAreaBorderWidth: 0,
+                      borderWidth: 0,
+                      margin:
+                          EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 5),
+                      primaryXAxis: DateTimeAxis(
+                          desiredIntervals: 10,
+                          interval: 10,
+                          maximum: DateTime.now().add(
+                            const Duration(hours: 0, minutes: 5, seconds: 59),
+                          ),
+
+                          dateFormat: DateFormat.jm(),
+                          majorGridLines: const MajorGridLines(width: 0),
+                          minorGridLines: const MinorGridLines(width: 0)),
+
+                      primaryYAxis: NumericAxis(
+                          minimum: 0,
+                          maximum: 100,
+                          interval: 20,
+                          majorGridLines: const MajorGridLines(width: 0),
+                          minorGridLines: const MinorGridLines(width: 0),
+                          numberFormat: NumberFormat.compact(),
+                          interactiveTooltip: InteractiveTooltip(
+                            enable:
+                                true, // when crosshair is used, this controls whether tooltip shows on y-axis
+                          )),
+                      series: <ChartSeries<ChartSampleData, DateTime>>[
+                        AreaSeries<ChartSampleData, DateTime>(
+                            enableTooltip: true,
+                            color: Colors.transparent,
+                            dataSource: humData,
+                            borderWidth: 1.5,
+                            borderGradient:
+                                const LinearGradient(colors: <Color>[
+                              Colors.green,
+                              Colors.red,
+                            ], stops: <double>[
+                              0.2,
+                              0.9
+                            ]),
+                            xValueMapper: (ChartSampleData sales, _) => sales.x,
+                            yValueMapper: (ChartSampleData sales, _) =>
+                                sales.yValue)
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -881,24 +852,42 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     ),
                     SfCartesianChart(
                         plotAreaBorderColor: Colors.transparent,
-                        primaryYAxis: CategoryAxis(
+                        trackballBehavior: TrackballBehavior(
+                            enable: true,
+                            activationMode: ActivationMode.singleTap,
+                            markerSettings: const TrackballMarkerSettings(
+                                markerVisibility: TrackballVisibilityMode.visible,
+                                shape: DataMarkerType.circle,
+                                width: 13,
+                                height: 13,
+                                borderColor: Colors.black,
+                                color: Color(0xffFC9626)),
+                            tooltipSettings: InteractiveTooltip(
+                                color: Colors.white,
+                                borderWidth: 1.5,
+                                borderColor: Color(0xffCFD8DC),
+                                // Formatting trackball tooltip text
+                                format: 'point.x : point.y Bq/m3',
+                                textStyle: TextStyle(color: Colors.black))),
+                        primaryYAxis: NumericAxis(
                             minimum: 0,
                             maximum: 1000,
                             interval: 200,
                             majorGridLines: const MajorGridLines(width: 0),
                             minorGridLines: const MinorGridLines(width: 0)),
                         primaryXAxis: DateTimeAxis(
-                            labelFormat: '{value}°C',
                             desiredIntervals: 10,
                             interval: 10,
                             maximum: DateTime.now().add(
                               const Duration(hours: 0, minutes: 5, seconds: 59),
                             ),
+
                             dateFormat: DateFormat.jm(),
                             majorGridLines: const MajorGridLines(width: 0),
                             minorGridLines: const MinorGridLines(width: 0)),
                         series: <ChartSeries<ChartSampleData, DateTime>>[
                           AreaSeries<ChartSampleData, DateTime>(
+                            enableTooltip: true,
                               borderGradient:
                                   const LinearGradient(colors: <Color>[
                                 Colors.green,
@@ -940,10 +929,26 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     const SizedBox(
                       height: 24,
                     ),
-                      SfCartesianChart(
+                    SfCartesianChart(
                         plotAreaBorderColor: Colors.transparent,
-                        primaryYAxis: CategoryAxis(
-
+                        trackballBehavior: TrackballBehavior(
+                            enable: true,
+                            activationMode: ActivationMode.singleTap,
+                            markerSettings: const TrackballMarkerSettings(
+                                markerVisibility: TrackballVisibilityMode.visible,
+                                shape: DataMarkerType.circle,
+                                width: 13,
+                                height: 13,
+                                borderColor: Colors.black,
+                                color: Color(0xffFC9626)),
+                            tooltipSettings: InteractiveTooltip(
+                                color: Colors.white,
+                                borderWidth: 1.5,
+                                borderColor: Color(0xffCFD8DC),
+                                // Formatting trackball tooltip text
+                                format: 'point.x : point.y °C',
+                                textStyle: TextStyle(color: Colors.black))),
+                        primaryYAxis: NumericAxis(
                             minimum: -20,
                             maximum: 100,
                             interval: 20,
@@ -958,8 +963,10 @@ class _DeviceDetailState extends State<DeviceDetail> {
                             dateFormat: DateFormat.jm(),
                             majorGridLines: const MajorGridLines(width: 0),
                             minorGridLines: const MinorGridLines(width: 0)),
+
                         series: <ChartSeries<ChartSampleData, DateTime>>[
                           AreaSeries<ChartSampleData, DateTime>(
+                            enableTooltip: true,
                               borderGradient:
                                   const LinearGradient(colors: <Color>[
                                 Colors.green,
@@ -1003,14 +1010,30 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     ),
                     SfCartesianChart(
                         plotAreaBorderColor: Colors.transparent,
-                        primaryYAxis: CategoryAxis(
+                        trackballBehavior: TrackballBehavior(
+                            enable: true,
+                            activationMode: ActivationMode.singleTap,
+                            markerSettings: const TrackballMarkerSettings(
+                                markerVisibility: TrackballVisibilityMode.visible,
+                                shape: DataMarkerType.circle,
+                                width: 13,
+                                height: 13,
+                                borderColor: Colors.black,
+                                color: Color(0xffFC9626)),
+                            tooltipSettings: InteractiveTooltip(
+                                color: Colors.white,
+                                borderWidth: 1.5,
+                                borderColor: Color(0xffCFD8DC),
+                                // Formatting trackball tooltip text
+                                format: 'point.x : point.y ppb',
+                                textStyle: TextStyle(color: Colors.black))),
+                        primaryYAxis: NumericAxis(
                             minimum: 0,
                             maximum: 600,
                             interval: 200,
                             majorGridLines: const MajorGridLines(width: 0),
                             minorGridLines: const MinorGridLines(width: 0)),
                         primaryXAxis: DateTimeAxis(
-                            labelFormat: '{value}°C',
                             desiredIntervals: 10,
                             interval: 10,
                             maximum: DateTime.now().add(
@@ -1065,7 +1088,24 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     ),
                     SfCartesianChart(
                         plotAreaBorderColor: Colors.transparent,
-                        primaryYAxis: CategoryAxis(
+                        trackballBehavior: TrackballBehavior(
+                            enable: true,
+                            activationMode: ActivationMode.singleTap,
+                            markerSettings: const TrackballMarkerSettings(
+                                markerVisibility: TrackballVisibilityMode.visible,
+                                shape: DataMarkerType.circle,
+                                width: 13,
+                                height: 13,
+                                borderColor: Colors.black,
+                                color: Color(0xffFC9626)),
+                            tooltipSettings: InteractiveTooltip(
+                                color: Colors.white,
+                                borderWidth: 1.5,
+                                borderColor: Color(0xffCFD8DC),
+                                // Formatting trackball tooltip text
+                                format: 'point.x : point.y ppm',
+                                textStyle: TextStyle(color: Colors.black))),
+                        primaryYAxis: NumericAxis(
                             minimum: 0,
                             maximum: 600,
                             interval: 200,
@@ -1082,6 +1122,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                             minorGridLines: const MinorGridLines(width: 0)),
                         series: <ChartSeries<ChartSampleData, DateTime>>[
                           AreaSeries<ChartSampleData, DateTime>(
+                              enableTooltip: true,
                               color: Colors.transparent,
                               borderWidth: 1.5,
                               borderGradient:
@@ -1125,7 +1166,24 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     ),
                     SfCartesianChart(
                         plotAreaBorderColor: Colors.transparent,
-                        primaryYAxis: CategoryAxis(
+                        trackballBehavior: TrackballBehavior(
+                            enable: true,
+                            activationMode: ActivationMode.singleTap,
+                            markerSettings: const TrackballMarkerSettings(
+                                markerVisibility: TrackballVisibilityMode.visible,
+                                shape: DataMarkerType.circle,
+                                width: 13,
+                                height: 13,
+                                borderColor: Colors.black,
+                                color: Color(0xffFC9626)),
+                            tooltipSettings: InteractiveTooltip(
+                                color: Colors.white,
+                                borderWidth: 1.5,
+                                borderColor: Color(0xffCFD8DC),
+                                // Formatting trackball tooltip text
+                                format: 'point.x : point.y μg/m³',
+                                textStyle: TextStyle(color: Colors.black))),
+                        primaryYAxis: NumericAxis(
                             minimum: 0,
                             maximum: 100,
                             interval: 20,
@@ -1142,6 +1200,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                             minorGridLines: const MinorGridLines(width: 0)),
                         series: <ChartSeries<ChartSampleData, DateTime>>[
                           AreaSeries<ChartSampleData, DateTime>(
+                              enableTooltip: true,
                               color: Colors.transparent,
                               borderGradient:
                                   const LinearGradient(colors: <Color>[
@@ -1185,7 +1244,24 @@ class _DeviceDetailState extends State<DeviceDetail> {
                     ),
                     SfCartesianChart(
                         plotAreaBorderColor: Colors.transparent,
-                        primaryYAxis: CategoryAxis(
+                        trackballBehavior: TrackballBehavior(
+                            enable: true,
+                            activationMode: ActivationMode.singleTap,
+                            markerSettings: const TrackballMarkerSettings(
+                                markerVisibility: TrackballVisibilityMode.visible,
+                                shape: DataMarkerType.circle,
+                                width: 13,
+                                height: 13,
+                                borderColor: Colors.black,
+                                color: Color(0xffFC9626)),
+                            tooltipSettings: InteractiveTooltip(
+                                color: Colors.white,
+                                borderWidth: 1.5,
+                                borderColor: Color(0xffCFD8DC),
+                                // Formatting trackball tooltip text
+                                format: 'point.x : point.y μg/m³',
+                                textStyle: TextStyle(color: Colors.black))),
+                        primaryYAxis: NumericAxis(
                             minimum: 0,
                             maximum: 1,
                             majorGridLines: const MajorGridLines(width: 0),
@@ -1201,6 +1277,7 @@ class _DeviceDetailState extends State<DeviceDetail> {
                             minorGridLines: const MinorGridLines(width: 0)),
                         series: <ChartSeries<ChartSampleData, DateTime>>[
                           AreaSeries<ChartSampleData, DateTime>(
+                              enableTooltip: true,
                               color: Colors.transparent,
                               borderGradient:
                                   const LinearGradient(colors: <Color>[
@@ -1223,480 +1300,6 @@ class _DeviceDetailState extends State<DeviceDetail> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class ChartSampleData {
-  final DateTime x;
-  final double yValue;
-
-  ChartSampleData({required this.x, required this.yValue});
-}
-
-class TopBar extends StatelessWidget {
-  const TopBar({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    return Column(
-      children: [
-        SizedBox(
-          width: width,
-          child: Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Max's Office Device",
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w600),
-              ),
-              Wrap(
-                children: [
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(primary: Colors.white),
-                    onPressed: () {},
-                    icon: const Icon(
-                        // <-- Icon
-                        Icons.edit,
-                        size: 24.0,
-                        color: Colors.black),
-                    label: const Text(
-                      'Rename',
-                      style: TextStyle(color: Colors.black),
-                    ), // <-- Text
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(primary: Colors.white),
-                    onPressed: () {},
-                    icon: const Icon(
-                        // <-- Icon
-                        Icons.directions,
-                        size: 24.0,
-                        color: Colors.black),
-                    label: const Text(
-                      'Change location',
-                      style: TextStyle(color: Colors.black),
-                    ), // <-- Text
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(primary: Colors.white),
-                    onPressed: () {},
-                    icon: const Icon(
-                        // <-- Icon
-                        Icons.delete,
-                        size: 24.0,
-                        color: Colors.black),
-                    label: const Text(
-                      'Delete',
-                      style: const TextStyle(color: Colors.black),
-                    ), // <-- Text
-                  ),
-                ],
-              )
-            ],
-          ),
-        ),
-        const SizedBox(
-          height: 25,
-        ),
-        SizedBox(
-          width: width,
-          child: IntrinsicWidth(
-            child: Wrap(
-              spacing: 20,
-              alignment: WrapAlignment.spaceBetween,
-              children: [
-                IntrinsicWidth(
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text(
-                            "MAC address",
-                            overflow: TextOverflow.clip,
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Text(
-                            "455556565599A5",
-                            overflow: TextOverflow.clip,
-                          )
-                        ],
-                      ),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text(
-                            "Sensor serial number",
-                            overflow: TextOverflow.clip,
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Text(
-                            "xxxxxxxxxxx-xxxxxxxxxxx",
-                            overflow: TextOverflow.clip,
-                          )
-                        ],
-                      ),
-                      const SizedBox(
-                        width: 5,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text(
-                            "Last synced",
-                            overflow: TextOverflow.clip,
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Text(
-                            "8 minutes ago",
-                            overflow: TextOverflow.clip,
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                IntrinsicWidth(
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text(
-                            "Location",
-                            overflow: TextOverflow.clip,
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Text(
-                            "MTZ Munich",
-                            overflow: TextOverflow.clip,
-                          )
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text(
-                            "Building type",
-                            overflow: TextOverflow.clip,
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Text(
-                            "Office",
-                            overflow: TextOverflow.clip,
-                          )
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text(
-                            "Floor",
-                            overflow: TextOverflow.clip,
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Text(
-                            "1 Floor       ",
-                            overflow: TextOverflow.clip,
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                IntrinsicWidth(
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text(
-                            "Usuage hours",
-                            overflow: TextOverflow.clip,
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Text(
-                            "Monday till Friday",
-                            overflow: TextOverflow.clip,
-                          )
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text(
-                            "Device added",
-                            overflow: TextOverflow.clip,
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Text(
-                            "Aug 20,2021",
-                            overflow: TextOverflow.clip,
-                          )
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text(
-                            "Dashboard access",
-                            overflow: TextOverflow.clip,
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Text(
-                            "Aug, 20,2024",
-                            overflow: TextOverflow.clip,
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                IntrinsicWidth(
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text(
-                            "Sensor calibration",
-                            overflow: TextOverflow.clip,
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Text(
-                            "view certificate",
-                            overflow: TextOverflow.clip,
-                          )
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Text(
-                            "Next calibration",
-                            overflow: TextOverflow.clip,
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Text(
-                            "Aug 20,2022",
-                            overflow: TextOverflow.clip,
-                          )
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-class ButtonList extends StatelessWidget {
-  const ButtonList({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    return SizedBox(
-      width: width,
-      child: Wrap(
-        alignment: WrapAlignment.spaceBetween,
-        children: [
-          IntrinsicWidth(
-            child: Wrap(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8, horizontal: 12),
-                  decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xffECEFF1))),
-                  height: 40,
-                  child: const Text("Last 12 Hours"),
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8, horizontal: 12),
-                  decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xffECEFF1))),
-                  height: 40,
-                  child: const Text("Last 24 Hours"),
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8, horizontal: 12),
-                  decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xffECEFF1))),
-                  height: 40,
-                  child: const Text("Last Week"),
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8, horizontal: 12),
-                  decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xffECEFF1))),
-                  height: 40,
-                  child: const Text("Last Month"),
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8, horizontal: 12),
-                  decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xffECEFF1))),
-                  height: 40,
-                  child: const Text("Last 6 Months"),
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8, horizontal: 12),
-                  decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xffECEFF1))),
-                  height: 40,
-                  child: const Text("Last Year"),
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8, horizontal: 12),
-                  decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xffECEFF1))),
-                  height: 40,
-                  child: const Text("Last Custom"),
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                IntrinsicWidth(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 8, horizontal: 12),
-                    decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xffECEFF1))),
-                    height: 40,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: const [
-                        Icon(
-                          Icons.check_box_outline_blank,
-                          size: 25,
-                        ),
-                        SizedBox(
-                          width: 12,
-                        ),
-                        Text("Consider usage hours"),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-              ],
-            ),
-          ),
-          IntrinsicWidth(
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8, horizontal: 12),
-                  decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xffECEFF1))),
-                  height: 40,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Image.asset('images/collapse_charts.png'),
-                      const SizedBox(
-                        width: 12,
-                      ),
-                      const Text("Collapse charts"),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8, horizontal: 12),
-                  decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xffECEFF1))),
-                  height: 40,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Image.asset('images/download.png'),
-                      const SizedBox(
-                        width: 12,
-                      ),
-                      const Text("Exports to CSV"),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          )
-        ],
       ),
     );
   }
