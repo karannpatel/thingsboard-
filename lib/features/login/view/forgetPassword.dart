@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
-import 'package:thingsboard/features/login/controller/loginController.dart';
-import 'package:thingsboard_pe_client/thingsboard_client.dart';
+import '../../../constant.dart';
+
 class ForgetPasswordPage extends StatefulWidget {
   const ForgetPasswordPage({Key? key}) : super(key: key);
 
@@ -13,11 +12,8 @@ class ForgetPasswordPage extends StatefulWidget {
 
 class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
   TextEditingController nameController = TextEditingController();
-  LoginController loginController = Get.put(LoginController());
-  bool visiblePassword = false;
-  var tbClient = ThingsboardClient('https://dashboard.livair.io:443',onError: (e){
-    Get.snackbar("Error", e.message!,colorText: Colors.white,backgroundColor: Colors.red);
-  });
+
+  ConstantController constantController = Get.put(ConstantController());
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
@@ -27,19 +23,19 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
         child: SingleChildScrollView(
           child: Container(
             clipBehavior: Clip.hardEdge,
-            padding: EdgeInsets.symmetric(vertical: 25, horizontal: 50),
+            padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 50),
             height: height * 0.35,
             width: width<=800?width * 0.8:width*0.5,
-            decoration: BoxDecoration(
-                color: Color(0xff00695c),
-                borderRadius: BorderRadius.all(Radius.circular(10))),
+            decoration: const BoxDecoration(
+                color: const Color(0xff00695c),
+                borderRadius: const BorderRadius.all(const Radius.circular(10))),
             child: ListView(
               children: [
                 Expanded(
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        Text("Request Password Reset",style: TextStyle(
+                        const Text("Request Password Reset",style: TextStyle(
                             fontSize: 25,
                             color: Colors.white
                         ),),
@@ -47,8 +43,8 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
                           padding: const EdgeInsets.all(10),
                           child: TextField(
                             controller: nameController,
-                            style: TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               labelStyle: TextStyle(color: Colors.white),
                               focusedBorder: OutlineInputBorder(
@@ -61,7 +57,7 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
                             ),
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 50,
                         ),
                         SizedBox(
@@ -69,28 +65,28 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Obx(()=>Container(
+                              Container(
                                   height: 50,
                                   width: width<=800?width * 0.3:width*0.2,
                                   padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      primary: Color(0xffff5722), // This is what you need!
+                                      primary: const Color(0xffff5722), // This is what you need!
                                     ),
-                                    child: loginController.isLoading.value?CircularProgressIndicator():const Text('Request Password Reset'),
+                                    child:const Text('Request Password Reset'),
                                     onPressed: () {
                                       nameController.clear();
-                                     var res =   tbClient.sendResetPasswordLink(nameController.text);
+                                      var res =   constantController.tbClient.sendResetPasswordLink(nameController.text);
                                       Get.snackbar("Success", "Reset link is send to your email",colorText: Colors.white,backgroundColor: Colors.green);
-                                     },
-                                  )),),
+                                    },
+                                  )),
                               Container(
                                   height: 50,
                                   width: width<=800?width * 0.2:width*0.1,
                                   padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      primary: Color(0xff00c3b6), // This is what you need!
+                                      primary: const Color(0xff00c3b6), // This is what you need!
                                     ),
                                     child: const Text('Cancel'),
                                     onPressed: () {

@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thingsboard/constant.dart';
 import 'package:thingsboard/features/dashboard/view/dashboard.dart';
-import 'package:thingsboard/features/login/controller/loginController.dart';
 import 'package:thingsboard/features/login/view/forgetPassword.dart';
 
 import 'package:thingsboard_pe_client/thingsboard_client.dart';
@@ -18,9 +17,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  LoginController loginController = Get.put(LoginController());
   bool visiblePassword = false;
-  // final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   ConstantController constantController = Get.put(ConstantController());
   @override
   Widget build(BuildContext context) {
@@ -134,35 +131,35 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(
                 height: 50,
               ),
-              Obx(()=> Container(
-                  height: 50,
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      primary: const Color(0xffff5722), // This is what you need!
-                    ),
-                    child: loginController.isLoading.value?const CircularProgressIndicator():const Text('Login'),
-                    onPressed: ()async {
-                      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-                      try{
-                       // var res =await constantController.tbClient.login(LoginRequest('babylon99_de@gmx.de', 'Iot123!!'));
-                       var res =await constantController.tbClient.login(LoginRequest(nameController.text, passwordController.text));
-                        print(constantController.tbClient.getAuthUser());
-                        if(constantController.tbClient.isAuthenticated())
+                  Container(
+                      height: 50,
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                      child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            primary: const Color(0xffff5722), // This is what you need!
+                          ),
+                          child: const Text('Login'),
+                          onPressed: ()async {
+                            SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+                            try{
+                              var res =await constantController.tbClient.login(LoginRequest('babylon99_de@gmx.de', 'Iot123!!'));
+                              //var res =await constantController.tbClient.login(LoginRequest(nameController.text, passwordController.text));
+                              print(constantController.tbClient.getAuthUser());
+                              if(constantController.tbClient.isAuthenticated())
 
-                          sharedPreferences.setString('token', constantController.tbClient.getJwtToken()!);
-                          constantController.tbClient.setUserFromJwtToken(constantController.tbClient.getJwtToken(), constantController.tbClient.getRefreshToken(), true);
-                          Get.to(DashboardScreen());
-                      }
-                      catch(e){
-                        print(e);
-                      }
-                      // loginController.login(nameController.text, passwordController.text);
-                      //   nameController.clear();
-                      //   passwordController.clear();
-                      }
-                  ))),
+                                sharedPreferences.setString('token', constantController.tbClient.getJwtToken()!);
+                              constantController.tbClient.setUserFromJwtToken(constantController.tbClient.getJwtToken(), constantController.tbClient.getRefreshToken(), true);
+                              Get.to(DashboardScreen());
+                            }
+                            catch(e){
+                              print(e);
+                            }
+                            // loginController.login(nameController.text, passwordController.text);
+                            //   nameController.clear();
+                            //   passwordController.clear();
+                          }
+                      ))
             ]),
           ),
         ),

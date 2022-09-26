@@ -4,17 +4,17 @@ import 'package:thingsboard_pe_client/thingsboard_client.dart';
 import '../../../constant.dart';
 import '../view/widgets/chartSampleData.dart';
 
-class DeviceController extends GetxController{
+class DeviceController extends GetxController {
   RxList<PageData> data = <PageData>[].obs;
   RxList temp = [].obs;
   RxList hum = [].obs;
-  RxList<ChartSampleData> tempData = <ChartSampleData>[].obs;
-  RxList<ChartSampleData> humData = <ChartSampleData>[].obs;
-  RxList<ChartSampleData> radonData = <ChartSampleData>[].obs;
-  RxList<ChartSampleData> co2Data = <ChartSampleData>[].obs;
-  RxList<ChartSampleData> noxData = <ChartSampleData>[].obs;
-  RxList<ChartSampleData> vocData = <ChartSampleData>[].obs;
-  RxList<ChartSampleData> pmData = <ChartSampleData>[].obs;
+  RxList<ChartData> tempData = <ChartData>[].obs;
+  RxList<ChartData> humData = <ChartData>[].obs;
+  RxList<ChartData> radonData = <ChartData>[].obs;
+  RxList<ChartData> co2Data = <ChartData>[].obs;
+  RxList<ChartData> noxData = <ChartData>[].obs;
+  RxList<ChartData> vocData = <ChartData>[].obs;
+  RxList<ChartData> pmData = <ChartData>[].obs;
   var subscription;
   void getData() async {
     ConstantController constantController = Get.put(ConstantController());
@@ -46,10 +46,9 @@ class DeviceController extends GetxController{
     ]);
     subscription.entityDataStream.listen((entityDataUpdate) {
       DataUpdate dataUpdate = entityDataUpdate;
-      print(dataUpdate.data);
-      print('-0-0-0890890i-s09d0-0osda-s-0s-a0s-a0s-a0');
+      data.add(dataUpdate.data!);
+      data.refresh();
     });
-
 
     subscription.subscribe();
   }
@@ -68,9 +67,6 @@ class DeviceController extends GetxController{
                 key: EntityKey(
                     type: EntityKeyType.ENTITY_FIELD, key: 'createdTime'),
                 direction: EntityDataSortOrderDirection.DESC)));
-    var currentTime = DateTime.now()
-        .subtract(const Duration(hours: 1))
-        .millisecondsSinceEpoch;
     var timeWindow = const Duration(seconds: 30).inMilliseconds;
     var tsCmd = TimeSeriesCmd(
         agg: Aggregation.NONE,
@@ -89,7 +85,7 @@ class DeviceController extends GetxController{
             .millisecondsSinceEpoch);
     // Create subscription command with entities query and timeseries subscription
     var cmd =
-    EntityDataCmd(query: devicesQuery, tsCmd: tsCmd, historyCmd: hisCmd);
+        EntityDataCmd(query: devicesQuery, tsCmd: tsCmd, historyCmd: hisCmd);
 
     // Create subscription with provided subscription command
     var telemetryService = constantController.tbClient.getTelemetryService();
@@ -102,28 +98,29 @@ class DeviceController extends GetxController{
         EntityData historyData = dataUpdate.data!.data[0];
         if (historyData.timeseries['radon']!.isNotEmpty) {
           for (var i in historyData.timeseries['radon']!) {
-            radonData.add(ChartSampleData(
+            radonData.add(ChartData(
                 x: DateTime.fromMillisecondsSinceEpoch(i.ts),
                 yValue: double.parse((i.value!))));
+            radonData.refresh();
           }
         }
         if (historyData.timeseries['hum']!.isNotEmpty) {
           for (var i in historyData.timeseries['hum']!) {
-            humData.add(ChartSampleData(
+            humData.add(ChartData(
                 x: DateTime.fromMillisecondsSinceEpoch(i.ts),
                 yValue: double.parse((i.value!))));
           }
         }
         if (historyData.timeseries['temp']!.isNotEmpty) {
           for (var i in historyData.timeseries['temp']!) {
-            tempData.add(ChartSampleData(
+            tempData.add(ChartData(
                 x: DateTime.fromMillisecondsSinceEpoch(i.ts),
                 yValue: double.parse((i.value!))));
           }
         }
         if (historyData.timeseries['voc']!.isNotEmpty) {
           for (var i in historyData.timeseries['voc']!) {
-            vocData.add(ChartSampleData(
+            vocData.add(ChartData(
                 x: DateTime.fromMillisecondsSinceEpoch(i.ts),
                 yValue: double.parse((i.value!))));
           }
@@ -135,106 +132,99 @@ class DeviceController extends GetxController{
               j = j + 1;
               continue;
             }
-            co2Data.add(ChartSampleData(
+            co2Data.add(ChartData(
                 x: DateTime.fromMillisecondsSinceEpoch(i.ts),
                 yValue: double.parse((i.value!))));
           }
         }
         if (historyData.timeseries['pm']!.isNotEmpty) {
           for (var i in historyData.timeseries['pm']!) {
-            pmData.add(ChartSampleData(
+            pmData.add(ChartData(
                 x: DateTime.fromMillisecondsSinceEpoch(i.ts),
                 yValue: double.parse((i.value!))));
           }
         }
         if (historyData.timeseries['nox']!.isNotEmpty) {
           for (var i in historyData.timeseries['nox']!) {
-            noxData.add(ChartSampleData(
+            noxData.add(ChartData(
                 x: DateTime.fromMillisecondsSinceEpoch(i.ts),
                 yValue: double.parse((i.value!))));
           }
         }
-        print(historyData.timeseries['radon']);
       }
-      print('0-0-0-0-0-0-0-0-0-0-');
-      print(dataUpdate.update);
 
-        if (dataUpdate.update != null) {
-          EntityData entityData = dataUpdate.update![0];
-          print('8787878787878787');
-          if (entityData.timeseries['hum'] != null &&
-              (entityData.timeseries['hum'] as List<TsValue>).isNotEmpty) {
-            hum.add((entityData.timeseries['hum'] as List<TsValue>)[0].value);
-            humData.add(ChartSampleData(
-                x: DateTime.fromMillisecondsSinceEpoch(
-                    (entityData.timeseries['hum'] as List<TsValue>)[0].ts),
-                yValue: double.parse(hum.last.toString())));
-            humData.sort((a, b) => a.x.compareTo(b.x));
-            //listSlot.add(FlSpot(i+1, double.parse(hum.last.toString())));
-          }
-          if (entityData.timeseries['temp'] != null &&
-              (entityData.timeseries['temp'] as List<TsValue>).isNotEmpty) {
-            temp.add((entityData.timeseries['temp'] as List<TsValue>)[0].value);
-            tempData.add(ChartSampleData(
-                x: DateTime.fromMillisecondsSinceEpoch(
-                    (entityData.timeseries['temp'] as List<TsValue>)[0].ts),
-                yValue: double.parse(temp.last.toString())));
-            tempData.sort((a, b) => a.x.compareTo(b.x));
-          }
-          if (entityData.timeseries['radon'] != null &&
-              (entityData.timeseries['radon'] as List<TsValue>).isNotEmpty) {
-            radonData.add(ChartSampleData(
-                x: DateTime.fromMillisecondsSinceEpoch(
-                    (entityData.timeseries['radon'] as List<TsValue>)[0].ts),
-                yValue: double.parse(
-                    (entityData.timeseries['radon'] as List<TsValue>)[0]
-                        .value!)));
-            radonData.sort((a, b) => a.x.compareTo(b.x));
-          }
-          if (entityData.timeseries['co2'] != null &&
-              (entityData.timeseries['co2'] as List<TsValue>).isNotEmpty) {
-            co2Data.add(ChartSampleData(
-                x: DateTime.fromMillisecondsSinceEpoch(
-                    (entityData.timeseries['co2'] as List<TsValue>)[0].ts),
-                yValue: double.parse(
-                    (entityData.timeseries['co2'] as List<TsValue>)[0]
-                        .value!)));
-            co2Data.sort((a, b) => a.x.compareTo(b.x));
-          }
-          if (entityData.timeseries['voc'] != null &&
-              (entityData.timeseries['voc'] as List<TsValue>).isNotEmpty) {
-            vocData.add(ChartSampleData(
-                x: DateTime.fromMillisecondsSinceEpoch(
-                    (entityData.timeseries['voc'] as List<TsValue>)[0].ts),
-                yValue: double.parse(
-                    (entityData.timeseries['voc'] as List<TsValue>)[0]
-                        .value!)));
-            vocData.sort((a, b) => a.x.compareTo(b.x));
-          }
-          if (entityData.timeseries['pm'] != null &&
-              (entityData.timeseries['pm'] as List<TsValue>).isNotEmpty) {
-            pmData.add(ChartSampleData(
-                x: DateTime.fromMillisecondsSinceEpoch(
-                    (entityData.timeseries['pm'] as List<TsValue>)[0].ts),
-                yValue: double.parse(
-                    (entityData.timeseries['pm'] as List<TsValue>)[0].value!)));
-            pmData.sort((a, b) => a.x.compareTo(b.x));
-          }
-          if (entityData.timeseries['nox'] != null &&
-              (entityData.timeseries['nox'] as List<TsValue>).isNotEmpty) {
-            noxData.add(ChartSampleData(
-                x: DateTime.fromMillisecondsSinceEpoch(
-                    (entityData.timeseries['nox'] as List<TsValue>)[0].ts),
-                yValue: double.parse(
-                    (entityData.timeseries['nox'] as List<TsValue>)[0]
-                        .value!)));
-            noxData.sort((a, b) => a.x.compareTo(b.x));
-          }
+      if (dataUpdate.update != null) {
+        EntityData entityData = dataUpdate.update![0];
+        if (entityData.timeseries['hum'] != null &&
+            (entityData.timeseries['hum'] as List<TsValue>).isNotEmpty) {
+          hum.add((entityData.timeseries['hum'] as List<TsValue>)[0].value);
+          humData.add(ChartData(
+              x: DateTime.fromMillisecondsSinceEpoch(
+                  (entityData.timeseries['hum'] as List<TsValue>)[0].ts),
+              yValue: double.parse(hum.last.toString())));
+          humData.sort((a, b) => a.x.compareTo(b.x));
+          //listSlot.add(FlSpot(i+1, double.parse(hum.last.toString())));
         }
-       });
+        if (entityData.timeseries['temp'] != null &&
+            (entityData.timeseries['temp'] as List<TsValue>).isNotEmpty) {
+          temp.add((entityData.timeseries['temp'] as List<TsValue>)[0].value);
+          tempData.add(ChartData(
+              x: DateTime.fromMillisecondsSinceEpoch(
+                  (entityData.timeseries['temp'] as List<TsValue>)[0].ts),
+              yValue: double.parse(temp.last.toString())));
+          tempData.sort((a, b) => a.x.compareTo(b.x));
+        }
+        if (entityData.timeseries['radon'] != null &&
+            (entityData.timeseries['radon'] as List<TsValue>).isNotEmpty) {
+          radonData.add(ChartData(
+              x: DateTime.fromMillisecondsSinceEpoch(
+                  (entityData.timeseries['radon'] as List<TsValue>)[0].ts),
+              yValue: double.parse(
+                  (entityData.timeseries['radon'] as List<TsValue>)[0]
+                      .value!)));
+          radonData.sort((a, b) => a.x.compareTo(b.x));
+          radonData.refresh();
+        }
+        if (entityData.timeseries['co2'] != null &&
+            (entityData.timeseries['co2'] as List<TsValue>).isNotEmpty) {
+          co2Data.add(ChartData(
+              x: DateTime.fromMillisecondsSinceEpoch(
+                  (entityData.timeseries['co2'] as List<TsValue>)[0].ts),
+              yValue: double.parse(
+                  (entityData.timeseries['co2'] as List<TsValue>)[0].value!)));
+          co2Data.sort((a, b) => a.x.compareTo(b.x));
+        }
+        if (entityData.timeseries['voc'] != null &&
+            (entityData.timeseries['voc'] as List<TsValue>).isNotEmpty) {
+          vocData.add(ChartData(
+              x: DateTime.fromMillisecondsSinceEpoch(
+                  (entityData.timeseries['voc'] as List<TsValue>)[0].ts),
+              yValue: double.parse(
+                  (entityData.timeseries['voc'] as List<TsValue>)[0].value!)));
+          vocData.sort((a, b) => a.x.compareTo(b.x));
+        }
+        if (entityData.timeseries['pm'] != null &&
+            (entityData.timeseries['pm'] as List<TsValue>).isNotEmpty) {
+          pmData.add(ChartData(
+              x: DateTime.fromMillisecondsSinceEpoch(
+                  (entityData.timeseries['pm'] as List<TsValue>)[0].ts),
+              yValue: double.parse(
+                  (entityData.timeseries['pm'] as List<TsValue>)[0].value!)));
+          pmData.sort((a, b) => a.x.compareTo(b.x));
+        }
+        if (entityData.timeseries['nox'] != null &&
+            (entityData.timeseries['nox'] as List<TsValue>).isNotEmpty) {
+          noxData.add(ChartData(
+              x: DateTime.fromMillisecondsSinceEpoch(
+                  (entityData.timeseries['nox'] as List<TsValue>)[0].ts),
+              yValue: double.parse(
+                  (entityData.timeseries['nox'] as List<TsValue>)[0].value!)));
+          noxData.sort((a, b) => a.x.compareTo(b.x));
+        }
+      }
+    });
 
     // Perform subscribe (send subscription command via WebSocket API and listen for responses)
     subscription.subscribe();
   }
-
 }

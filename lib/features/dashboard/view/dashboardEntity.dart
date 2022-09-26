@@ -1,15 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:thingsboard/features/dashboard/view/device.dart';
 import 'package:thingsboard/features/device/view/deviceDetail.dart';
 import 'package:thingsboard_pe_client/thingsboard_client.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-
 import '../../../constant.dart';
 import '../controller/dashboardController.dart';
 
@@ -42,23 +35,6 @@ class _DashboardEntityScreenState extends State<DashboardEntityScreen> {
               EntityKey(type: EntityKeyType.ATTRIBUTE, key: "active")
             ]
         )),
-
-      // EntityDataCmd(
-      //   cmdId: 2,
-      //     query:EntityDataQuery(
-      //         pageLink: EntityDataPageLink(pageSize: 500), entityFilter: SingleEntityFilter(singleEntity:DeviceId("e2dd9ae0-342d-11ed-a05f-bda054e13867")),
-      //       latestValues: [
-      //         EntityKey(type: EntityKeyType.ATTRIBUTE, key: "active"),
-      //         EntityKey(type: EntityKeyType.TIME_SERIES, key: "radon"),
-      //         EntityKey(type: EntityKeyType.ATTRIBUTE, key: "voc"),
-      //       ],
-      //       entityFields: [
-      //         EntityKey(type: EntityKeyType.ENTITY_FIELD, key: "name"),
-      //         EntityKey(type: EntityKeyType.ENTITY_FIELD, key: "label"),
-      //         EntityKey(type: EntityKeyType.ENTITY_FIELD, key: "additionalInfo"),
-      //       ]
-      //     ),
-      // )
     ]);
     subscription.entityDataStream.listen((entityDataUpdate) {
       DataUpdate dataUpdate = entityDataUpdate;
@@ -91,7 +67,7 @@ class _DashboardEntityScreenState extends State<DashboardEntityScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 50),
             child: Column(children: [
-              Text(
+              const Text(
                 "Dashboard Entity groups",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),

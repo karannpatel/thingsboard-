@@ -5,14 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:responsive_framework/responsive_wrapper.dart';
-import 'package:thingsboard/injection_container.dart';
 import 'package:thingsboard_pe_client/thingsboard_client.dart';
 
 import 'features/login/view/login.dart';
 
 void main() {
 
-  init();
   HttpOverrides.global = MyHttpOverrides();
   runApp(const MyApp());
 }
