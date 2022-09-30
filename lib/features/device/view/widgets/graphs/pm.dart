@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:intl/intl.dart';
@@ -8,7 +7,7 @@ import '../chartSampleData.dart';
 
 class PmGraph extends StatefulWidget {
   List<ChartData> data;
-  PmGraph({required this.data});
+  PmGraph({Key? key, required this.data}) : super(key: key);
 
   @override
   State<PmGraph> createState() => _PmGraphState();
@@ -19,8 +18,8 @@ class _PmGraphState extends State<PmGraph> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xffECEFF1))),
+      decoration:
+          BoxDecoration(border: Border.all(color: const Color(0xffECEFF1))),
       child: Column(
         children: [
           Row(
@@ -28,9 +27,8 @@ class _PmGraphState extends State<PmGraph> {
               Image.asset('/images/pressure.png'),
               const Text(
                 "PM - Last 12 hours",
-                style: const TextStyle(
-                    color: Color(0xff78909C), fontSize: 12),
-              )
+                style: TextStyle(color: Color(0xff78909C), fontSize: 12),
+              ),
             ],
           ),
           const SizedBox(
@@ -42,14 +40,13 @@ class _PmGraphState extends State<PmGraph> {
                   enable: true,
                   activationMode: ActivationMode.singleTap,
                   markerSettings: const TrackballMarkerSettings(
-                      markerVisibility:
-                      TrackballVisibilityMode.visible,
+                      markerVisibility: TrackballVisibilityMode.visible,
                       shape: DataMarkerType.circle,
                       width: 13,
                       height: 13,
                       borderColor: Colors.black,
                       color: Color(0xffFC9626)),
-                  tooltipSettings: InteractiveTooltip(
+                  tooltipSettings: const InteractiveTooltip(
                       color: Colors.white,
                       borderWidth: 1.5,
                       borderColor: Color(0xffCFD8DC),
@@ -75,8 +72,7 @@ class _PmGraphState extends State<PmGraph> {
                 AreaSeries<ChartData, DateTime>(
                     enableTooltip: true,
                     color: Colors.transparent,
-                    borderGradient:
-                    const LinearGradient(colors: <Color>[
+                    borderGradient: const LinearGradient(colors: <Color>[
                       Colors.green,
                       Colors.red,
                     ], stops: <double>[
@@ -85,10 +81,8 @@ class _PmGraphState extends State<PmGraph> {
                     ]),
                     dataSource: widget.data,
                     borderWidth: 1.5,
-                    xValueMapper: (ChartData sales, _) =>
-                    sales.x,
-                    yValueMapper: (ChartData sales, _) =>
-                    sales.yValue)
+                    xValueMapper: (ChartData sales, _) => sales.x,
+                    yValueMapper: (ChartData sales, _) => sales.yValue)
               ])
         ],
       ),

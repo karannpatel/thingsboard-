@@ -25,20 +25,20 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
             clipBehavior: Clip.hardEdge,
             padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 50),
             height: height * 0.35,
-            width: width<=800?width * 0.8:width*0.5,
+            width: width <= 800 ? width * 0.8 : width * 0.5,
             decoration: const BoxDecoration(
-                color: const Color(0xff00695c),
-                borderRadius: const BorderRadius.all(const Radius.circular(10))),
+                color: Color(0xff00695c),
+                borderRadius: BorderRadius.all(Radius.circular(10))),
             child: ListView(
               children: [
                 Expanded(
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        const Text("Request Password Reset",style: TextStyle(
-                            fontSize: 25,
-                            color: Colors.white
-                        ),),
+                        const Text(
+                          "Request Password Reset",
+                          style: TextStyle(fontSize: 25, color: Colors.white),
+                        ),
                         Container(
                           padding: const EdgeInsets.all(10),
                           child: TextField(
@@ -67,26 +67,37 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
                             children: [
                               Container(
                                   height: 50,
-                                  width: width<=800?width * 0.3:width*0.2,
-                                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                  width:
+                                      width <= 800 ? width * 0.3 : width * 0.2,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(10, 0, 10, 0),
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      primary: const Color(0xffff5722), // This is what you need!
+                                      primary: const Color(
+                                          0xffff5722), // This is what you need!
                                     ),
-                                    child:const Text('Request Password Reset'),
+                                    child: const Text('Request Password Reset'),
                                     onPressed: () {
                                       nameController.clear();
-                                      var res =   constantController.tbClient.sendResetPasswordLink(nameController.text);
-                                      Get.snackbar("Success", "Reset link is send to your email",colorText: Colors.white,backgroundColor: Colors.green);
+                                      var res = constantController.tbClient
+                                          .sendResetPasswordLink(
+                                              nameController.text);
+                                      Get.snackbar("Success",
+                                          "Reset link is send to your email",
+                                          colorText: Colors.white,
+                                          backgroundColor: Colors.green);
                                     },
                                   )),
                               Container(
                                   height: 50,
-                                  width: width<=800?width * 0.2:width*0.1,
-                                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                  width:
+                                      width <= 800 ? width * 0.2 : width * 0.1,
+                                  padding:
+                                      const EdgeInsets.fromLTRB(10, 0, 10, 0),
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      primary: const Color(0xff00c3b6), // This is what you need!
+                                      primary: const Color(
+                                          0xff00c3b6), // This is what you need!
                                     ),
                                     child: const Text('Cancel'),
                                     onPressed: () {
